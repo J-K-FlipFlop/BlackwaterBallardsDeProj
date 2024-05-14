@@ -33,23 +33,23 @@ resource "aws_iam_role_policy_attachment" "attach_write_policy_to_ingestion_zone
 
 #policy document, policy and role-policy attachment for Cloudwatch /tobewritten/
 
-# data "aws_iam_policy_document" "extract_lambda_cloudwatch" {
-#   statement {
-#     actions = [ "logs:CreateLogGroup" ]
-#     resources = [ "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*" ]
-#   }
-#   statement {
-#     actions = [ "logs:CreateLogStream", "logs:PutLogEvents" ]
-#     resources = [ "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.fake_lambda_for_testing.function_name}:*" ]
-#   }
-# }
+data "aws_iam_policy_document" "extract_lambda_cloudwatch" {
+  statement {
+    actions = [ "logs:CreateLogGroup" ]
+    resources = [ "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*" ]
+  }
+  statement {
+    actions = [ "logs:CreateLogStream", "logs:PutLogEvents" ]
+    resources = [ "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.extract_lambda.function_name}:*" ]
+  }
+}
 
-# resource "aws_iam_policy" "cloudwatch_policy_extract_lambda" {
-#   name = "cloudwatch-policy-extract-lambda"
-#   policy = data.aws_iam_policy_document.extract_lambda_cloudwatch.json
-# }
+resource "aws_iam_policy" "cloudwatch_policy_extract_lambda" {
+  name = "cloudwatch-policy-extract-lambda"
+  policy = data.aws_iam_policy_document.extract_lambda_cloudwatch.json
+}
 
-# resource "aws_iam_role_policy_attachment" "attach_cloudwatch_to_extract_lambda" {
-#   role = aws_iam_role.extract_lambda_role.name
-#   policy_arn = aws_iam_policy.cloudwatch_policy_extract_lambda.arn
-# }
+resource "aws_iam_role_policy_attachment" "attach_cloudwatch_to_extract_lambda" {
+  role = aws_iam_role.extract_lambda_role.name
+  policy_arn = aws_iam_policy.cloudwatch_policy_extract_lambda.arn
+}
