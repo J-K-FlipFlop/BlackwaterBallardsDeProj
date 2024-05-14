@@ -1,5 +1,5 @@
 from pg8000.native import Connection
-from credentials_manager import get_secret
+from src.credentials_manager import get_secret
 
 user = get_secret()["username"]
 password = get_secret()["password"]
