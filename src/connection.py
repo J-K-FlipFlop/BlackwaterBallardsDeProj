@@ -9,4 +9,4 @@ port = get_secret()["port"]
 
 
 def connect_to_db():
-    return Connection(user='project_team_2', password='laWBU6s7imO0XXBC', database='totesys', host='nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com', port=5432)
+    return Connection(user=user, password=password, database=database, port=port, host=host)
