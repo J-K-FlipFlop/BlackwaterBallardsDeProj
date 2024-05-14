@@ -15,10 +15,4 @@ def connect_to_db_table(table):
         sales_order_csv.writeheader()
         for dict in sales_order_dicts:
             sales_order_csv.writerow(dict)
-
-connect_to_db_table('sales_order')
-connect_to_db_table('design')
-connect_to_db_table('payment')
-connect_to_db_table('staff')
-
-
+    return f"data from {table} written to src/csv/{table}.csv"
