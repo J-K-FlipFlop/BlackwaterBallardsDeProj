@@ -7,3 +7,4 @@ requests
 python-dotenv
 boto3-stubs[essential]
 botocore-stubs
+pg8000
