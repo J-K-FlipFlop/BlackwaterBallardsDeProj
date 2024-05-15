@@ -24,8 +24,8 @@ def create_csv_data(table, formatted_list):
     return f"data from {table} written to src/csv/{table}.csv"
 
 
-result = connect_to_db_table("staff")
-if result[0].get("status","") == "Failed":
-    print(result)
-else:
-    create_csv_data("staff", result)
+# result = connect_to_db_table("staff")
+# if result[0].get("status","") == "Failed":
+#     print(result)
+# else:
+#     create_csv_data("staff", result)
