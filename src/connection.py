@@ -1,11 +1,13 @@
 from pg8000.native import Connection
 from src.credentials_manager import get_secret
 
-user = get_secret()["username"]
-password = get_secret()["password"]
-database = get_secret()["dbname"]
-host = get_secret()["host"]
-port = get_secret()["port"]
+creds = get_secret()
+
+user = creds["username"]
+password = creds["password"]
+database = creds["dbname"]
+host = creds["host"]
+port = creds["port"]
 
 
 def connect_to_db():
