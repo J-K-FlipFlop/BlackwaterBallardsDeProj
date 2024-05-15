@@ -1,11 +1,13 @@
 #main lambda function to extract code for storage to s3
 resource "aws_lambda_function" "extract_lambda" {
   function_name = "extract_lambda"
-  s3_bucket = aws_s3_bucket.extract_lambda_storage.bucket
-  s3_key = "lambda/extract_lambda.zip"
+  filename = "${path.module}/../function.zip"
+  # s3_bucket = aws_s3_bucket.extract_lambda_storage.bucket
+  # s3_key = "lambda/extract_lambda.zip"
   role = aws_iam_role.extract_lambda_role.arn
   handler = "lambda_extract_function.lambda_handler"
   runtime = "python3.11"
+  source_code_hash = data.archive_file.extract_lambda_zip.output_base64sha256
 }
 
 #determine source file to extract and its desired output path
@@ -21,4 +23,16 @@ resource "aws_lambda_permission" "extract_lambda_eventbridge" {
   principal = "events.amazonaws.com"
   source_arn = aws_cloudwatch_event_rule.extract_lambda_scheduler.arn
   source_account = data.aws_caller_identity.current.account_id
+}
+
+
+resource "null_resource" "install_dependencies_monsters" {
+  provisioner "local-exec" {
+    command = "pip install -r ../requirements.txt"
+  }
+
+  triggers = {
+    dependencies_versions = filemd5("../requirements.txt")
+    source_versions       = filemd5("../src/lambda_extract_function.py")
+  }
 }

@@ -81,3 +81,6 @@ def lambda_handler():
         except:
             return {"success": "false"}
     return {"success": "true"}
+
+
+lambda_handler()
