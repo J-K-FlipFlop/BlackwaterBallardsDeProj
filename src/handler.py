@@ -1,12 +1,13 @@
 from src.connection import connect_to_db
 import csv
 from pg8000.exceptions import DatabaseError
+import pandas as pd
 
 
 def connect_to_db_table(table):
     try:
         conn = connect_to_db()
-        result = conn.run(f"Select * From :table;", table=table)
+        result = conn.run(f"Select * From {table};")
         columns = [col["name"] for col in conn.columns]
         sales_order_dicts = [dict(zip(columns, a)) for a in result]
         return sales_order_dicts
@@ -25,7 +26,13 @@ def create_csv_data(table, formatted_list):
 
 
 result = connect_to_db_table("staff")
-if result[0].get("status","") == "Failed":
-    print(result)
-else:
-    create_csv_data("staff", result)
+print(result)
+
+df = pd.DataFrame(result)
+df.to_csv("test.csv", index=False)
+
+
+# if result[0].get("status","") == "Failed":
+#     print(result)
+# else:
+#     create_csv_data("staff", result)

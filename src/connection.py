@@ -11,4 +11,6 @@ port = creds["port"]
 
 
 def connect_to_db():
-    return Connection(user=user, password=password, database=database, port=port, host=host)
+    return Connection(
+        user=user, password=password, database=database, port=port, host=host
+    )
