@@ -1,3 +1,4 @@
+#main lambda function to extract code for storage to s3
 resource "aws_lambda_function" "extract_lambda" {
   function_name = "extract_lambda"
   s3_bucket = aws_s3_bucket.extract_lambda_storage.bucket
@@ -7,6 +8,7 @@ resource "aws_lambda_function" "extract_lambda" {
   runtime = "python3.11"
 }
 
+#determine source file to extract and its desired output path
 data "archive_file" "extract_lambda_zip" {
   type        = "zip"
   source_file = "${path.module}/../src/handler.py"
