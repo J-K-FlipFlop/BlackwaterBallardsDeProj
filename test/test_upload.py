@@ -201,3 +201,7 @@ class TestWriteCsvToS3:
         
         result = write_csv_to_s3(session, data, bucket, key)
         assert result["message"] == "The specified bucket does not exist"
+
+
+# class TestLambdaHandler:
+#     def test_handler_returns_message
