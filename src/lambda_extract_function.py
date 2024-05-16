@@ -64,6 +64,8 @@ def connect_to_db_table(table):
     except DatabaseError:
         error_message = f'relation "{table}" does not exist'
         return {"status": "Failed", "message": error_message}
+    finally:
+        conn.close()
     
 def write_csv_to_s3(session, data, bucket, key):
     try:
