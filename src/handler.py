@@ -18,14 +18,14 @@ def connect_to_db_table(table):
         return {"status": "Failed", "message": error_message}
 
 
-def create_csv_data(table, formatted_list):
-    table = sql_security(table)
-    with open(f"src/csv/{table}.csv", "w", newline="") as f:
-        sales_order_csv = csv.DictWriter(f, formatted_list[0].keys())
-        sales_order_csv.writeheader()
-        for dicts in formatted_list:
-            sales_order_csv.writerow(dicts)
-    return f"data from {table} written to src/csv/{table}.csv"
+# def create_csv_data(table, formatted_list):
+#     table = sql_security(table)
+#     with open(f"src/csv/{table}.csv", "w", newline="") as f:
+#         sales_order_csv = csv.DictWriter(f, formatted_list[0].keys())
+#         sales_order_csv.writeheader()
+#         for dicts in formatted_list:
+#             sales_order_csv.writerow(dicts)
+#     return f"data from {table} written to src/csv/{table}.csv"
 
 def sql_security(table):
     conn = connect_to_db()
@@ -37,17 +37,17 @@ def sql_security(table):
     else:
         raise DatabaseError("Table not found - do not start a table name with pg_, sql_ or _")
 
-connect_to_db_table("pg_Harry")
+# connect_to_db_table("pg_Harry")
 
     
     
 
 
-result = connect_to_db_table("staff")
-print(result)
+# result = connect_to_db_table("staff")
+# print(result)
 
-df = pd.DataFrame(result)
-df.to_csv("test.csv", index=False)
+# df = pd.DataFrame(result)
+# df.to_csv("test.csv", index=False)
 
 
 # if result[0].get("status","") == "Failed":
