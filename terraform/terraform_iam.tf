@@ -53,3 +53,23 @@ resource "aws_iam_role_policy_attachment" "attach_cloudwatch_to_extract_lambda" 
   role = aws_iam_role.extract_lambda_role.name
   policy_arn = aws_iam_policy.cloudwatch_policy_extract_lambda.arn
 }
+
+data "aws_iam_policy_document" "access_secret_values_lambda" {
+  statement {
+    sid    = "EnableAnotherAWSAccountToReadTheSecret"
+    effect = "Allow"
+
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "lambda_access_secrets_policy" {
+  name = "lambda_access_secrets_policy"
+  policy = data.aws_iam_policy_document.access_secret_values_lambda.json
+}
+
+resource "aws_iam_role_policy_attachment" "attach_lambda_access_secrets_to_extract_lambda" {
+  role = aws_iam_role.extract_lambda_role.name
+  policy_arn = aws_iam_policy.lambda_access_secrets_policy.arn
+}
