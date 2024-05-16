@@ -7,6 +7,8 @@ resource "aws_lambda_function" "extract_lambda" {
   runtime          = "python3.11"
   source_code_hash = data.archive_file.extract_lambda_zip.output_base64sha256
   layers           = [aws_lambda_layer_version.awswrangler_layer.arn]
+  timeout          = 45
+  memory_size      = 1024
 }
 
 #determine source file to extract and its desired output path

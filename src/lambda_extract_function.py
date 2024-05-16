@@ -66,8 +66,8 @@ def write_csv_to_s3(session, data, bucket, key):
         logger.info(f"Boto3 ClientError: {str(c)}")
         return {"status": "failed", "message": c.response["Error"]["Message"]}
     
-def lambda_handler():
-    bucket = "bucket-for-my-emotions"
+def lambda_handler(event, context):
+    bucket = "blackwater-ingestion-zone"
     table_list = ["counterparty", "currency", "department", "design", "staff", 
                   "sales_order", "address", "payment", "purchase_order",
                   "payment_type", "transaction"]
@@ -81,6 +81,3 @@ def lambda_handler():
         except:
             return {"success": "false"}
     return {"success": "true"}
-
-
-lambda_handler()
