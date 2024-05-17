@@ -6,6 +6,7 @@ from moto import mock_aws
 from src.extract_lambda.utils import write_csv_to_s3, write_to_s3, convert_table_to_dict
 from pg8000.exceptions import DatabaseError
 
+
 @pytest.fixture(scope="function")
 def aws_creds():
     os.environ["AWS_ACCESS_KEY_ID"] = "test"
@@ -17,6 +18,7 @@ def aws_creds():
 def s3_client(aws_creds):
     with mock_aws():
         yield boto3.client("s3")
+
 
 def test_function_returns_a_list_of_dicts():
     table = "sales_order"
@@ -46,13 +48,13 @@ def test_returns_error_message_if_table_name_not_found():
     with pytest.raises(DatabaseError):
         convert_table_to_dict(table)
 
+
 def test_sql_statement_not_vulnerable_to_injection():
     table = "staff; drop table staff;"
     with pytest.raises(DatabaseError):
         convert_table_to_dict(table)
 
 
-@pytest.mark.skip()
 class TestWriteToS3:
     def test_s3_takes_file(self, s3_client):
         data = "src/data/dummy_file.txt"
@@ -107,11 +109,12 @@ class TestWriteToS3:
             == "hello, collumn2, the_roman_empire, homer_simpson"
         )
 
+
 class TestWriteCsvToS3:
     def test_csv_file_is_written_to_bucket(self, s3_client):
         session = boto3.session.Session(
-        aws_access_key_id="test", aws_secret_access_key="test"
-    )
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
         data = [
             {
                 "staff_id": 1,
@@ -119,12 +122,8 @@ class TestWriteCsvToS3:
                 "last_name": "Franey",
                 "department_id": 2,
                 "email_address": "jeremie.franey@terrifictotes.com",
-                "created_at": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
-                "last_updated": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
+                "created_at": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
+                "last_updated": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
             },
             {
                 "staff_id": 2,
@@ -132,12 +131,8 @@ class TestWriteCsvToS3:
                 "last_name": "Beier",
                 "department_id": 6,
                 "email_address": "deron.beier@terrifictotes.com",
-                "created_at": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
-                "last_updated": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
+                "created_at": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
+                "last_updated": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
             },
         ]
         bucket = "bucket-for-my-emotions"
@@ -150,12 +145,11 @@ class TestWriteCsvToS3:
         result = write_csv_to_s3(session, data, bucket, key)
         assert result["message"] == "written to bucket"
 
-    @pytest.mark.skip()
     def test_csv_uploads_correct_file_content(self, s3_client):
-        
+
         session = boto3.session.Session(
-        aws_access_key_id="test", aws_secret_access_key="test"
-    )
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
         data = [
             {
                 "staff_id": 1,
@@ -163,12 +157,8 @@ class TestWriteCsvToS3:
                 "last_name": "Franey",
                 "department_id": 2,
                 "email_address": "jeremie.franey@terrifictotes.com",
-                "created_at": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
-                "last_updated": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
+                "created_at": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
+                "last_updated": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
             },
             {
                 "staff_id": 2,
@@ -176,12 +166,8 @@ class TestWriteCsvToS3:
                 "last_name": "Beier",
                 "department_id": 6,
                 "email_address": "deron.beier@terrifictotes.com",
-                "created_at": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
-                "last_updated": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
+                "created_at": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
+                "last_updated": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
             },
         ]
         bucket = "bucket-for-my-emotions"
@@ -194,13 +180,15 @@ class TestWriteCsvToS3:
 
         response = s3_client.get_object(Bucket=bucket, Key=key)
         output = response["Body"].read().decode("UTF-8")
-        assert output == "staff_id,first_name,last_name,department_id,email_address,created_at,last_updated\n1,Jeremie,Franey,2,jeremie.franey@terrifictotes.com,2022-11-03 14:20:51.563,2022-11-03 14:20:51.563\n2,Deron,Beier,6,deron.beier@terrifictotes.com,2022-11-03 14:20:51.563,2022-11-03 14:20:51.563\n"
+        assert (
+            output
+            == "staff_id,first_name,last_name,department_id,email_address,created_at,last_updated\n1,Jeremie,Franey,2,jeremie.franey@terrifictotes.com,2022-11-03 14:20:51.563,2022-11-03 14:20:51.563\n2,Deron,Beier,6,deron.beier@terrifictotes.com,2022-11-03 14:20:51.563,2022-11-03 14:20:51.563\n"
+        )
 
-    @pytest.mark.skip()
     def test_write_fails_when_bucket_not_found(self, s3_client):
         session = boto3.session.Session(
-        aws_access_key_id="test", aws_secret_access_key="test"
-    )
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
         data = [
             {
                 "staff_id": 1,
@@ -208,12 +196,8 @@ class TestWriteCsvToS3:
                 "last_name": "Franey",
                 "department_id": 2,
                 "email_address": "jeremie.franey@terrifictotes.com",
-                "created_at": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
-                "last_updated": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
+                "created_at": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
+                "last_updated": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
             },
             {
                 "staff_id": 2,
@@ -221,17 +205,12 @@ class TestWriteCsvToS3:
                 "last_name": "Beier",
                 "department_id": 6,
                 "email_address": "deron.beier@terrifictotes.com",
-                "created_at": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
-                "last_updated": datetime.datetime(
-                    2022, 11, 3, 14, 20, 51, 563000
-                ),
+                "created_at": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
+                "last_updated": datetime.datetime(2022, 11, 3, 14, 20, 51, 563000),
             },
         ]
         bucket = "bucket-for-my-emotions"
         key = "folder/file.csv"
-        
+
         result = write_csv_to_s3(session, data, bucket, key)
         assert result["message"] == "The specified bucket does not exist"
-

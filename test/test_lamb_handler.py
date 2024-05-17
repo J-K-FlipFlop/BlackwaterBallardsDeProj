@@ -4,6 +4,7 @@ import os
 from moto import mock_aws
 from src.extract_lambda.handler import lambda_handler
 
+
 @pytest.fixture(scope="function")
 def aws_creds():
     os.environ["AWS_ACCESS_KEY_ID"] = "test"
@@ -23,29 +24,32 @@ class TestLambdaHandler:
             aws_access_key_id="test", aws_secret_access_key="test"
         )
         result = lambda_handler("unused", "unused2", session)
-        assert result == {"success": "false"}
+        assert result == {
+            "success": "false",
+            "message": "The specified bucket does not exist",
+        }
 
     def test_handler_returns_true_message(self, s3_client):
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
         )
         s3_client.create_bucket(
-            Bucket="bucket-for-my-emotions",
+            Bucket="blackwater-ingestion-zone",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         result = lambda_handler("unused", "unused2", session)
-        assert result == {"success": "true"}
+        assert result == {"success": "true", "message": "written to bucket"}
 
     def test_handler_writes_correct_number_of_files_to_bucket(self, s3_client):
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
         )
         s3_client.create_bucket(
-            Bucket="bucket-for-my-emotions",
+            Bucket="blackwater-ingestion-zone",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         lambda_handler("unused", "unused2", session)
-        response = s3_client.list_objects_v2(Bucket="bucket-for-my-emotions")
+        response = s3_client.list_objects_v2(Bucket="blackwater-ingestion-zone")
         assert len(response["Contents"]) == 11
 
     def test_handler_writes_data_to_each_file(self, s3_client):
@@ -53,10 +57,10 @@ class TestLambdaHandler:
             aws_access_key_id="test", aws_secret_access_key="test"
         )
         s3_client.create_bucket(
-            Bucket="bucket-for-my-emotions",
+            Bucket="blackwater-ingestion-zone",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         lambda_handler("unused", "unused2", session)
-        response = s3_client.list_objects_v2(Bucket="bucket-for-my-emotions")
+        response = s3_client.list_objects_v2(Bucket="blackwater-ingestion-zone")
         for file in response["Contents"]:
             assert file["Size"] > 100
