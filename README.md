@@ -14,18 +14,23 @@ The IAM user should also be granted ability to view the relevant secrets on the 
 The project was agreed to run on Python version 3.11.1, which is stated in the .python-version file.
 
 ## SRC
-The src file contains all the Python code that is needed for the AWS Lambdas.
+The src file contains all the Python code that is needed for the AWS Lambdas. The Lambdas are stored separately in different subfolders within the src file.
 
-### connection
+### Extract Lambda
+
+#### connection
 Accesses the username, password etc from the secrets manager required to form a connection to the totesys database. The only function, connect_to_db returns a pg8000 native connection to the totesys database.
 
-### credentials_manager
+#### credentials_manager
 Using the relevant IAM user access key and secret access key stored in the .env file (see Installation guide), uses boto3 to access aws secrets manager and returns a dictionary containing the totesys connection information. This process is done in the get_secret function. Throws an error if cannot get a connection to the secrets manager.
 
-### handler
+#### example_update_code
+The function update_data_in_bucket takes a table name as an arguement. Reads a previous runtime value from the S3 code bucket. If this value is not present, takes a default value of year 1999. The function then compares the previous runtime value to the last_updated time, and if the last_updated is later, then saves the whole sales entry to a list. This list of new info is then written to a new file in the bucket via the write_csv_to_s3 function, with a unique id in the title related to the exact time the function was run.
+
+#### handler
 Contains 3 (!!!) functions; connect_to_db_table, create_csv_data and (!!!). The connect_to_db_table takes a single table name as input, uses the connect_to_db function to connect to the database, and then runs SQL queries to select all data from the relevant table. This is stored with the column names in dictionary format. This is then converted into a Pandas dataframe, and then into a csv file.
 
-### upload
+#### upload
 The upload file collects all of the relevant functions written in the previous files into one, which is then used as the source of the python code which is uploaded to Lambda. This file is needed so that we do not need to upload multiple python files for a lambda to work, nor need to use Lambda Layers.
 
 ## Terraform
