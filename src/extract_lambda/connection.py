@@ -1,5 +1,5 @@
 from pg8000.native import Connection
-from src.extract_lambda.credentials_manager import get_secret
+from credentials_manager import get_secret
 
 creds = get_secret()
 
