@@ -1,7 +1,7 @@
 #main lambda function to extract code for storage to s3
 resource "aws_lambda_function" "extract_lambda" {
   function_name    = "extract_lambda"
-  filename         = "${path.module}/../function.zip"
+  filename         = "${path.module}/../lambda_extract.zip"
   role             = aws_iam_role.extract_lambda_role.arn
   handler          = "lambda_extract_function.lambda_handler"
   runtime          = "python3.11"
@@ -12,11 +12,11 @@ resource "aws_lambda_function" "extract_lambda" {
 }
 
 #determine source file to extract and its desired output path
-data "archive_file" "extract_lambda_zip" {
-  type        = "zip"
-  source_file = "${path.module}/../src/lambda_extract_function.py"
-  output_path = "${path.module}/../function.zip"
-}
+# data "archive_file" "extract_lambda_zip" {
+#   type        = "zip"
+#   source_file = "${path.module}/../src/lambda_extract_function.py"
+#   output_path = "${path.module}/../function.zip"
+# }
 
 data "archive_file" "extract_lambda_dir_zip" {
   type        = "zip"
