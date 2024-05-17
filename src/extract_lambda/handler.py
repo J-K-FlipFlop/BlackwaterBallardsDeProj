@@ -13,7 +13,7 @@ logger.setLevel(logging.INFO)
 
 session = boto3.session.Session()
     
-def lambda_handler(event, context, session):
+def lambda_handler(event, context, session=None):
     bucket = "bucket-for-my-emotions"
     table_list = ["counterparty", "currency", "department", "design", "staff", 
                   "sales_order", "address", "payment", "purchase_order",
@@ -26,6 +26,7 @@ def lambda_handler(event, context, session):
         if response["success"]:
             print(f"EXTRACTING TO: table: {table}, key: {key}")
         else:
+            print(response["message"])
             return {"success": "false"}
     return {"success": "true"}
 
