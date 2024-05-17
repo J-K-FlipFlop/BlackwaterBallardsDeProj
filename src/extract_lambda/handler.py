@@ -1,4 +1,4 @@
-from src.extract_lambda.utils import convert_table_to_dict, write_csv_to_s3
+from utils import convert_table_to_dict, write_csv_to_s3
 import boto3
 import os
 import logging
