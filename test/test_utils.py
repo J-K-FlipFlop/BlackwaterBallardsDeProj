@@ -57,7 +57,7 @@ def test_sql_statement_not_vulnerable_to_injection():
 
 class TestWriteToS3:
     def test_s3_takes_file(self, s3_client):
-        data = "src/data/dummy_file.txt"
+        data = "data/dummy_file.txt"
         bucket = "bucket-for-my-emotions"
         key = "folder/file.txt"
         s3_client.create_bucket(
@@ -68,7 +68,7 @@ class TestWriteToS3:
         assert result["message"] == "written to bucket"
 
     def test_s3_uploads_correct_file_content(self, s3_client):
-        filepath = "src/data/dummy_file.txt"
+        filepath = "data/dummy_file.txt"
         bucket = "bucket-for-my-emotions"
         key = "folder/file.txt"
         s3_client.create_bucket(
@@ -84,7 +84,7 @@ class TestWriteToS3:
         assert response["Body"].read().decode("UTF-8") == "hello"
 
     def test_write_to_s3_fails_when_no_bucket(self, s3_client):
-        data = "src/data/dummy_file.txt"
+        data = "data/dummy_file.txt"
         bucket = "bucket-for-my-emotions"
         key = "folder/file.txt"
         result = write_to_s3(s3_client, data, bucket, key)

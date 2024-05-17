@@ -20,8 +20,9 @@ resource "aws_lambda_function" "extract_lambda" {
 
 data "archive_file" "extract_lambda_dir_zip" {
   type        = "zip"
-  source_dir = "${path.module}/../src/extract_lambda"
+  source_dir = "${path.module}/../src"
   output_path = "${path.module}/../lambda_extract.zip"
+  excludes = ["__pycache__"]
 }
 
 
