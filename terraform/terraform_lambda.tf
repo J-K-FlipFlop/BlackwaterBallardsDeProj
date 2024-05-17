@@ -3,9 +3,9 @@ resource "aws_lambda_function" "extract_lambda" {
   function_name    = "extract_lambda"
   filename         = "${path.module}/../lambda_extract.zip"
   role             = aws_iam_role.extract_lambda_role.arn
-  handler          = "lambda_extract_function.lambda_handler"
+  handler          = "handler.lambda_handler"
   runtime          = "python3.11"
-  source_code_hash = data.archive_file.extract_lambda_zip.output_base64sha256
+  source_code_hash = data.archive_file.extract_lambda_dir_zip.output_base64sha256
   layers           = [aws_lambda_layer_version.awswrangler_layer.arn]
   timeout          = 45
   memory_size      = 1024
@@ -20,7 +20,7 @@ resource "aws_lambda_function" "extract_lambda" {
 
 data "archive_file" "extract_lambda_dir_zip" {
   type        = "zip"
-  source_dir = "${path.module}/../src/lambda_extract"
+  source_dir = "${path.module}/../src/extract_lambda"
   output_path = "${path.module}/../lambda_extract.zip"
 }
 
