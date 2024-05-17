@@ -28,14 +28,10 @@ def test_header_count_equal_to_result_count():
 
 def test_returns_error_message_if_table_name_not_found():
     table = "dog"
-    result = connect_to_db_table(table)
-    assert result == {
-        "status": "Failed",
-        "message": 'relation "dog" does not exist',
-    }
+    with pytest.raises(DatabaseError):
+        connect_to_db_table(table)
 
-
-# def test_sql_statement_not_vulnerable_to_injection():
-#     table = "staff; drop table staff;"
-#     with pytest.raises(DatabaseError):
-#         connect_to_db_table(table)
+def test_sql_statement_not_vulnerable_to_injection():
+    table = "staff; drop table staff;"
+    with pytest.raises(DatabaseError):
+        connect_to_db_table(table)

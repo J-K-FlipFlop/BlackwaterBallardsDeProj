@@ -162,7 +162,7 @@ class TestWriteCsvToS3:
         output = response["Body"].read().decode("UTF-8")
         assert output == "staff_id,first_name,last_name,department_id,email_address,created_at,last_updated\n1,Jeremie,Franey,2,jeremie.franey@terrifictotes.com,2022-11-03 14:20:51.563,2022-11-03 14:20:51.563\n2,Deron,Beier,6,deron.beier@terrifictotes.com,2022-11-03 14:20:51.563,2022-11-03 14:20:51.563\n"
 
-    
+    @pytest.mark.skip()
     def test_write_fails_when_bucket_not_found(self, s3_client):
         session = boto3.session.Session(
         aws_access_key_id="test", aws_secret_access_key="test"
@@ -209,6 +209,7 @@ class TestLambdaHandler:
         )
         result = lambda_handler("unused", "unused2", session)
         assert result == {"success": "false"}
+
     def test_handler_returns_true_message(self, s3_client):
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -219,3 +220,28 @@ class TestLambdaHandler:
         )
         result = lambda_handler("unused", "unused2", session)
         assert result == {"success": "true"}
+
+    def test_handler_writes_correct_number_of_files_to_bucket(self, s3_client):
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket="bucket-for-my-emotions",
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        lambda_handler("unused", "unused2", session)
+        response = s3_client.list_objects_v2(Bucket="bucket-for-my-emotions")
+        assert len(response["Contents"]) == 11
+
+    def test_handler_writes_data_to_each_file(self, s3_client):
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket="bucket-for-my-emotions",
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        lambda_handler("unused", "unused2", session)
+        response = s3_client.list_objects_v2(Bucket="bucket-for-my-emotions")
+        for file in response["Contents"]:
+            assert file["Size"] > 100

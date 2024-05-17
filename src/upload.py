@@ -1,4 +1,4 @@
-from src.handler import connect_to_db_table, create_csv_data
+from src.handler import connect_to_db_table
 import boto3
 import os
 import logging
@@ -36,14 +36,14 @@ def write_csv_to_s3(session, data, bucket, key):
     except ClientError as c:
         logger.info(f"Boto3 ClientError: {str(c)}")
         response = {"success": False, "message": c.response["Error"]["Message"]}
-        print(response)
+        # print(response)
         return response
     
 
     
 def lambda_handler(event, context, session):
     bucket = "bucket-for-my-emotions"
-    table_list = ["counterparty", "currency", "department", "wrong_name", "staff", 
+    table_list = ["counterparty", "currency", "department", "design", "staff", 
                   "sales_order", "address", "payment", "purchase_order",
                   "payment_type", "transaction"]
 

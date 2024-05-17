@@ -6,6 +6,7 @@ import logging
 from botocore.exceptions import ClientError
 import awswrangler as wr
 import ast
+import re
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -42,7 +43,18 @@ def connect_to_db():
         user=user, password=password, database=database, port=port, host=host
     )
 
+def sql_security(table):
+    conn = connect_to_db()
+    table_names_unfiltered = conn.run("SELECT TABLE_NAME FROM totesys.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'")
+    regex = re.compile('(^pg_)|(^sql_)|(^_)')
+    table_names_filtered = [item[0] for item in table_names_unfiltered if not regex.search(item[0])]
+    if table in table_names_filtered:
+        return table
+    else:
+        raise DatabaseError("Table not found - do not start a table name with pg_, sql_ or _")
+    
 def connect_to_db_table(table):
+    table = sql_security(table)
     try:
         conn = connect_to_db()
         result = conn.run(f"Select * From {table};")
@@ -52,6 +64,8 @@ def connect_to_db_table(table):
     except DatabaseError:
         error_message = f'relation "{table}" does not exist'
         return {"status": "Failed", "message": error_message}
+    finally:
+        conn.close()
     
 def write_csv_to_s3(session, data, bucket, key):
     try:
