@@ -18,6 +18,13 @@ data "archive_file" "extract_lambda_zip" {
   output_path = "${path.module}/../function.zip"
 }
 
+#create zip file for the extract lambda dependencies
+data "archive_file" "extract_dependencies_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/../layers/extract-dependencies/"
+  output_path = "${path.module}/../awswrangler.zip"
+}
+
 
 resource "aws_lambda_permission" "extract_lambda_eventbridge" {
   action         = "lambda:InvokeFunction"
@@ -33,4 +40,5 @@ resource "aws_lambda_layer_version" "awswrangler_layer" {
   layer_name          = "awswrangler_layer"
   compatible_runtimes = ["python3.11"]
   filename            = "${path.module}/../awswrangler.zip"
+  source_code_hash = data.archive_file.extract_dependencies_zip.output_base64sha256
 }
