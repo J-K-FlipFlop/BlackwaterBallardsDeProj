@@ -9,11 +9,16 @@ import boto3
 
 def update_data_in_bucket(table: str):
     sales_table_info = connect_to_db_table(table)
-
-
-    previous_lambda_runtime = datetime(year=2024, month=5, day=16, hour=14, minute=00, second=00, microsecond=00000)
-    
-    
+    bucket = "blackwater-ingestion-zone"
+    runtime_key = f'last_ran_at.csv'
+    try:
+        get_previous_runtime = boto3.resource('s3').Object(bucket, runtime_key)
+        previous_lambda_runtime_uncut = get_previous_runtime.get()['Body'].read().decode('utf-8')
+        #if structure of blackwater-ingestion-zone/last_ran_at changes slice on line below will likely have to be updated too
+        previous_lambda_runtime = datetime.strptime(previous_lambda_runtime_uncut[12:-2], '%Y-%m-%d %H:%M:%S.%f')
+    except:
+        previous_lambda_runtime = datetime(1999, 12, 31, 23, 59, 59, 999999)
+    pp(previous_lambda_runtime)
     new_items = []
     current_lambda_runtime = datetime.now()
     for item in sales_table_info:
@@ -22,13 +27,13 @@ def update_data_in_bucket(table: str):
             new_items.append(item)
     session = boto3.session.Session()
     # ^^^ change if run on Lambda or not - Lambda does not require access key entries
-    bucket = "blackwater-ingestion-zone"
+    
     data = new_items
     key = f'update_test/{current_lambda_runtime}/{table}.csv'
     write_csv_to_s3(session=session, data=data, bucket=bucket, key=key)
     
     current_runtime = [{"last_ran_at" :current_lambda_runtime}]
-    runtime_key = f'last_ran_at.csv'
+    
     write_csv_to_s3(session=session, data= current_runtime, bucket=bucket, key=runtime_key)
 
 
