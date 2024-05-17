@@ -18,6 +18,12 @@ data "archive_file" "extract_lambda_zip" {
   output_path = "${path.module}/../function.zip"
 }
 
+data "archive_file" "extract_lambda_dir_zip" {
+  type        = "zip"
+  source_dir = "${path.module}/../src/lambda_extract"
+  output_path = "${path.module}/../lambda_extract.zip"
+}
+
 
 resource "aws_lambda_permission" "extract_lambda_eventbridge" {
   action         = "lambda:InvokeFunction"
