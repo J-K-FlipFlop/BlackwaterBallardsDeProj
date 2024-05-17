@@ -6,7 +6,7 @@ resource "aws_lambda_function" "extract_lambda" {
   handler          = "handler.lambda_handler"
   runtime          = "python3.11"
   source_code_hash = data.archive_file.extract_lambda_dir_zip.output_base64sha256
-  layers           = [aws_lambda_layer_version.awswrangler_layer.arn]
+  layers           = ["arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python311:12", aws_lambda_layer_version.util_layer.arn]
   timeout          = 45
   memory_size      = 1024
 }
@@ -20,16 +20,23 @@ resource "aws_lambda_function" "extract_lambda" {
 
 data "archive_file" "extract_lambda_dir_zip" {
   type        = "zip"
-  source_dir = "${path.module}/../src/extract_lambda"
+  source_file = "${path.module}/../src/extract_lambda/handler.py"
   output_path = "${path.module}/../lambda_extract.zip"
-  excludes = ["__pycache__"]
 }
 
 #create zip file for the extract lambda dependencies
-data "archive_file" "extract_dependencies_zip" {
+# data "archive_file" "extract_dependencies_zip" {
+#   type        = "zip"
+#   source_dir  = "${path.module}/../layers/extract-dependencies/"
+#   output_path = "${path.module}/../awswrangler.zip"
+# }
+
+#create zip file for the util functions
+data "archive_file" "extract_util_functions_zip" {
   type        = "zip"
-  source_dir  = "${path.module}/../layers/extract-dependencies/"
-  output_path = "${path.module}/../awswrangler.zip"
+  source_dir  = "${path.module}/../"
+  output_path = "${path.module}/../aws_utils/utils_layer.zip"
+  excludes    = [".git", ".pytest_cache", "aws_utils", "layers", "terraform", "test", "venv", ".coverage", ".env", ".gitignore", ".python-version", "awswrangler.zip", "function.zip", "image.png", "lambda_extract.zip", "Makefile", "README-NC.md", "README.md", "requirements.in", "requirements.txt", "test.csv", "src/extract_lambda/handler.py", "src/__pycache__"]
 }
 
 
@@ -43,9 +50,17 @@ resource "aws_lambda_permission" "extract_lambda_eventbridge" {
 
 
 #create a lambda awswrangler layer to be used by main lambda functions
-resource "aws_lambda_layer_version" "awswrangler_layer" {
-  layer_name          = "awswrangler_layer"
+# resource "aws_lambda_layer_version" "awswrangler_layer" {
+#   layer_name          = "awswrangler_layer"
+#   compatible_runtimes = ["python3.11"]
+#   filename            = "${path.module}/../awswrangler.zip"
+#   source_code_hash    = data.archive_file.extract_dependencies_zip.output_base64sha256
+# }
+
+#create a lambda layer for util functions
+resource "aws_lambda_layer_version" "util_layer" {
+  layer_name          = "util_layer"
   compatible_runtimes = ["python3.11"]
-  filename            = "${path.module}/../awswrangler.zip"
-  source_code_hash = data.archive_file.extract_dependencies_zip.output_base64sha256
+  filename            = "${path.module}/../aws_utils/utils_layer.zip"
+  source_code_hash    = data.archive_file.extract_util_functions_zip.output_base64sha256
 }

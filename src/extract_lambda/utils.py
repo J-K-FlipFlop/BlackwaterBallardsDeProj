@@ -1,4 +1,4 @@
-from connection import connect_to_db
+from src.extract_lambda.connection import connect_to_db
 from botocore.exceptions import ClientError
 from pg8000.exceptions import DatabaseError
 import logging
