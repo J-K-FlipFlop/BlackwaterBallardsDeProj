@@ -14,21 +14,21 @@ data "aws_iam_policy_document" "extract_lambda_trust_policy" {
   }
 }
 
-data "aws_iam_policy_document" "write_to_ingestion_zone" {
+data "aws_iam_policy_document" "read_write_from_ingestion_zone" {
   statement {
-    actions = ["s3:PutObject"]
+    actions = ["s3:PutObject", "s3:GetObject"]
     resources = ["${aws_s3_bucket.tf_ingestion_zone.arn}/*"]
   }
 }
 
-resource "aws_iam_policy" "write_policy_ingestion_zone" {
-  name = "write-policy-ingestion-zone"
-  policy = data.aws_iam_policy_document.write_to_ingestion_zone.json
+resource "aws_iam_policy" "read_write_policy_ingestion_zone" {
+  name = "read-write-policy-ingestion-zone"
+  policy = data.aws_iam_policy_document.read_write_from_ingestion_zone.json
 }
 
-resource "aws_iam_role_policy_attachment" "attach_write_policy_to_ingestion_zone" {
+resource "aws_iam_role_policy_attachment" "attach_read_write_policy_to_ingestion_zone" {
   role = aws_iam_role.extract_lambda_role.name
-  policy_arn = aws_iam_policy.write_policy_ingestion_zone.arn
+  policy_arn = aws_iam_policy.read_write_policy_ingestion_zone.arn
 }
 
 #policy document, policy and role-policy attachment for Cloudwatch /tobewritten/
