@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 session = boto3.session.Session()
 
+
 def get_secret():
 
     secret_name = "totesys-blackwater-credentials"
@@ -30,6 +31,7 @@ def get_secret():
     # print(secret["username"])
     return ast.literal_eval(secret)
 
+
 def connect_to_db():
     creds = get_secret()
 
@@ -42,6 +44,7 @@ def connect_to_db():
         user=user, password=password, database=database, port=port, host=host
     )
 
+
 def connect_to_db_table(table):
     try:
         conn = connect_to_db()
@@ -52,25 +55,37 @@ def connect_to_db_table(table):
     except DatabaseError:
         error_message = f'relation "{table}" does not exist'
         return {"status": "Failed", "message": error_message}
-    
+
+
 def write_csv_to_s3(session, data, bucket, key):
     try:
-        response =  wr.s3.to_csv(
+        response = wr.s3.to_csv(
             df=pd.DataFrame(data),
-            path=f's3://{bucket}/{key}',
+            path=f"s3://{bucket}/{key}",
             boto3_session=session,
-            index=False
-            )
+            index=False,
+        )
         return {"status": "success", "message": "written to bucket"}
     except ClientError as c:
         logger.info(f"Boto3 ClientError: {str(c)}")
         return {"status": "failed", "message": c.response["Error"]["Message"]}
-    
+
+
 def lambda_handler(event, context):
     bucket = "blackwater-ingestion-zone"
-    table_list = ["counterparty", "currency", "department", "design", "staff", 
-                  "sales_order", "address", "payment", "purchase_order",
-                  "payment_type", "transaction"]
+    table_list = [
+        "counterparty",
+        "currency",
+        "department",
+        "design",
+        "staff",
+        "sales_order",
+        "address",
+        "payment",
+        "purchase_order",
+        "payment_type",
+        "transaction",
+    ]
 
     for table in table_list:
         data = connect_to_db_table(table)

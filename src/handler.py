@@ -27,20 +27,25 @@ def connect_to_db_table(table):
 #             sales_order_csv.writerow(dicts)
 #     return f"data from {table} written to src/csv/{table}.csv"
 
+
 def sql_security(table):
     conn = connect_to_db()
-    table_names_unfiltered = conn.run("SELECT TABLE_NAME FROM totesys.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'")
-    regex = re.compile('(^pg_)|(^sql_)|(^_)')
-    table_names_filtered = [item[0] for item in table_names_unfiltered if not regex.search(item[0])]
+    table_names_unfiltered = conn.run(
+        "SELECT TABLE_NAME FROM totesys.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
+    )
+    regex = re.compile("(^pg_)|(^sql_)|(^_)")
+    table_names_filtered = [
+        item[0] for item in table_names_unfiltered if not regex.search(item[0])
+    ]
     if table in table_names_filtered:
         return table
     else:
-        raise DatabaseError("Table not found - do not start a table name with pg_, sql_ or _")
+        raise DatabaseError(
+            "Table not found - do not start a table name with pg_, sql_ or _"
+        )
+
 
 # connect_to_db_table("pg_Harry")
-
-    
-    
 
 
 # result = connect_to_db_table("staff")
