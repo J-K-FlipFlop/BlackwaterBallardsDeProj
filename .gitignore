@@ -13,6 +13,7 @@ serverless-output.yaml
 **/*_cache
 **/*pycache
 *coverage*
+**.zip
 venv/
 **/.terraform*
 terraform/init.sh
