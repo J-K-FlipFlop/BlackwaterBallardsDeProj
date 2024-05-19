@@ -6,7 +6,7 @@ resource "aws_lambda_function" "extract_lambda" {
   handler          = "handler.lambda_handler"
   runtime          = "python3.11"
   source_code_hash = data.archive_file.extract_lambda_dir_zip.output_base64sha256
-  layers           = ["arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python311:12", aws_lambda_layer_version.util_layer.arn]
+  layers           = ["arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python311:12", aws_lambda_layer_version.utility_layer.arn]
   timeout          = 45
   memory_size      = 1024
 }
@@ -32,12 +32,12 @@ data "archive_file" "extract_lambda_dir_zip" {
 # }
 
 #create zip file for the util functions
-data "archive_file" "extract_util_functions_zip" {
-  type        = "zip"
-  source_dir  = "${path.module}/../"
-  output_path = "${path.module}/../aws_utils/utils_layer.zip"
-  excludes    = [".git", ".pytest_cache", "aws_utils", "layers", "terraform", "test", "venv", ".coverage", ".env", ".gitignore", ".python-version", "awswrangler.zip", "function.zip", "image.png", "lambda_extract.zip", "Makefile", "README-NC.md", "README.md", "requirements.in", "requirements.txt", "test.csv", "src/extract_lambda/handler.py", "src/__pycache__"]
-}
+# data "archive_file" "extract_util_functions_zip" {
+#   type        = "zip"
+#   source_content = "${path.module}/../src/extract_lambda/utils.py"
+#   source_content_filename = "python/src/extract_lambda/utils.py"
+#   output_path = "${path.module}/../aws_utils/utils_layer.zip"
+# }
 
 
 resource "aws_lambda_permission" "extract_lambda_eventbridge" {
@@ -58,9 +58,36 @@ resource "aws_lambda_permission" "extract_lambda_eventbridge" {
 # }
 
 #create a lambda layer for util functions
-resource "aws_lambda_layer_version" "util_layer" {
+
+locals {
+  source_files = ["${path.module}/../src/extract_lambda/connection.py", "${path.module}/../src/extract_lambda/credentials_manager.py", "${path.module}/../src/extract_lambda/utils.py"]
+}
+
+data "template_file" "t_file" {
+  count = "${length(local.source_files)}"
+
+  template = "${file(element(local.source_files, count.index))}"
+}
+
+resource "local_file" "to_temp_dir" {
+  count    = length(local.source_files)
+  filename = "${path.module}/temp/python/src/extract_lambda/${basename(element(local.source_files, count.index))}"
+  content  = element(data.template_file.t_file.*.rendered, count.index)
+}
+
+data "archive_file" "archive" {
+  type        = "zip"
+  output_path = "${path.module}/../aws_utils/utils.zip"
+  source_dir  = "${path.module}/temp"
+
+  depends_on = [
+    "local_file.to_temp_dir",
+  ]
+}
+
+resource "aws_lambda_layer_version" "utility_layer" {
   layer_name          = "util_layer"
   compatible_runtimes = ["python3.11"]
-  filename            = "${path.module}/../aws_utils/utils_layer.zip"
-  source_code_hash    = data.archive_file.extract_util_functions_zip.output_base64sha256
+  filename            = "${path.module}/../aws_utils/utils.zip"
+  # source_code_hash    = data.archive_file.extract_util_functions_zip.output_base64sha256
 }
