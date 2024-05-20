@@ -39,12 +39,15 @@ The function convert_table_to_dict takes a table name as argument. It first uses
 
 The function write_csv_to_s3 takes a session, data to be written, bucket name and key (file path to data) as arguments. It uses the wrangler module and to_csv inbuilt functions to write the given data to the specified s3 bucket. The data is converted to a pandas dataframe before entry, and the bucket name and key provide the file path to the stored data. Returns a success message dict on successful write, throws a ClientError and logs the error on a failure.
 
+### Transform Lambda
+
+### Load Lambda
 
 ## Terraform
 The Terraform file contains all the relevant Terraform files to deploy the Lambdas, S3 buckets, Cloudwatch and IAM users required for the project.
 
-### terraform_cloudwatch
-(???)
+### terraform_alarms
+Contains the cloudwatch logs, metrics and filters to handle any errors thrown by any of the Lambdas. When a single error is given by the code, will send an email update to the given email addresses, alerting them to the specific error.
 
 ### terraform_events
 Creates the scheduler event which will periodically trigger the extract Lambda function to run every 5 minutes. Also connects the scheduler to the relevant rules to allow the scheduler to trigger the lambda function.
@@ -52,7 +55,21 @@ Creates the scheduler event which will periodically trigger the extract Lambda f
 ### terraform_iam
 Creates the extract Lambda role, allowing the Lambda to put objects into the Ingestion Zone S3 bucket. Also creates and attaches the relevant policies and policy documents.
 
-Additionally, creates and attachs 
+Additionally, creates and attachs the relevant Cloudwatch policies, such as creating log groups and log streams, between the extract lambda and Cloudwatch.
+
+Finally, allows the lambda to access the secrets manager, which takes the secret values to allow the code to access the Totesys database in a secure way.
+
+### terraform_lambda
+Creates the extract_lambda function within AWS lambda. Establishes where the extract_lambda pulls it's code from, and the layers available to the lambda. Also establishes where the lambda function should be zipped to, and links the permissions for the extract_lambda to be invoked by eventbridge. Finally, creates an aws wrangler to manage the layers available to the lambda.
+
+### terraform_main
+Sets up some of the default parameters for terraform, such as the terraform state bucket, the source and version, the aws regions and logs in with the access key and secret access key provided in the locally-saved .env file.
+
+### terraform_s3
+Sets up the buckets which will store the data ingested and transformed by the lambdas. 
+
+### terraform_variable
+Gives access to the environment variables for terraform.
 
 ## Test
 
