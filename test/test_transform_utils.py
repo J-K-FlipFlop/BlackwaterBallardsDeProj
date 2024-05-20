@@ -2,9 +2,11 @@ import pytest
 import boto3
 import os
 import datetime
+import pandas as pd
 from moto import mock_aws
-from src.transform_lambda.utils import read_latest_changes
+from src.transform_lambda.utils import read_latest_changes, get_data_from_ingestion_bucket
 from pg8000.exceptions import DatabaseError
+from botocore.exceptions import ClientError
 
 
 @pytest.fixture(scope="function")
@@ -76,3 +78,67 @@ class TestReadLatestChanges:
         assert result["table_list"] == [
             "update_test/2024-05-20 12:10:03.998128/staff.csv",
         ]
+
+class TestGetFileContents:
+    def test_function_returns_pandas_dataframe(self, s3_client):
+        bucket = "blackwater-ingestion-zone"
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = "test/data/dummy_csv.csv"
+        key = f"update_test/{timestamp}/staff.csv"
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        input_key = "update_test/2024-05-20 12:10:03.998128/staff.csv"
+        result = get_data_from_ingestion_bucket(input_key, session)
+        assert isinstance(result['data'], pd.DataFrame)
+
+    def test_data_in_result_in_expected_format_and_type(self, s3_client):
+        bucket = "blackwater-ingestion-zone"
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = "test/data/TestGetFileContents.csv"
+        key = f"update_test/{timestamp}/staff.csv"
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        input_key = "update_test/2024-05-20 12:10:03.998128/staff.csv"
+        result = get_data_from_ingestion_bucket(input_key, session)
+        assert len(result['data'].columns) == 7
+        expected = ['counterparty_id', 'counterparty_legal_name', 'legal_address_id',
+       'commercial_contact', 'delivery_contact', 'created_at', 'last_updated']
+        columns = result['data'].columns.values
+        for col in columns:
+            assert col in expected
+        assert len(result['data']) == 5
+
+    def test_missing_missing_bucket_raises_client_error(self, s3_client):
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        input_key = "update_test/2024-05-20 12:10:03.998128/staff.csv"
+        result = get_data_from_ingestion_bucket(input_key, session)
+        assert result['status'] == 'failure'
+        assert result['message']['Error']['Code'] == 'NoSuchBucket'
+
+    def test_missing_missing_bucket_raises_client_error(self, s3_client):
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        bucket = "blackwater-ingestion-zone"
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        input_key = "update_test/2024-05-20 12:10:03.998128/staff.csv"
+        result = get_data_from_ingestion_bucket(input_key, session)
+        assert result['status'] == 'failure'
+        assert str(result['message']) == f'No files Found on: s3://{bucket}/{input_key}.'

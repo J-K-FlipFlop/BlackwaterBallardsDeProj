@@ -1,9 +1,11 @@
 import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime
+import awswrangler as wr
+from awswrangler.exceptions import NoFilesFound
 
 
-# read from specific s3 bucket (ingestion-zone)
+# read from specific s3 bucket (ingestion-zone) 
 # find most recent folder
 # read list of files in folder
 # return dictionary containing the list
@@ -31,6 +33,25 @@ def read_latest_changes(client):
             "table_list": [],
         }
 
+
+def get_data_from_ingestion_bucket(key, session):
+    try:        
+        df = wr.s3.read_csv(path=f's3://blackwater-ingestion-zone/{key}', boto3_session=session)
+        print(df.columns)
+        return {
+            'status': 'success',
+            'data': df
+                }
+    except ClientError as ce:
+        return {
+            'status': 'failure',
+            'message': ce.response
+        }
+    except NoFilesFound as nff:
+        return {
+            'status': 'failure',
+            'message': nff
+        }
 
 # loop through table list
 # read data from s3 bucket for each file

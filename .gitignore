@@ -20,4 +20,3 @@ terraform/init.sh
 zen.txt
 *.tfstate*
 .env
-*.csv
