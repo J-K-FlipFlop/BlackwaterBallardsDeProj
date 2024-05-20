@@ -96,11 +96,10 @@ def update_data_in_bucket(table: str, bucket, session, time_of_day):
 
     data = new_items
     key = f"update_test/{time_of_day}/{table}.csv"
-    write_csv_to_s3(session=session, data=data, bucket=bucket, key=key)
-    current_runtime = [{"last_ran_at": time_of_day}]
-
-    response = write_csv_to_s3(
-        session=session, data=current_runtime, bucket=bucket, key=runtime_key
-    )
+    if new_items:
+        response = write_csv_to_s3(session=session, data=data, bucket=bucket, key=key)
+               
+    else:
+        response = {"success": False, "message": 'no new data'}
 
     return response
