@@ -16,7 +16,11 @@ logger.setLevel(logging.INFO)
 session = boto3.session.Session()
 
 
-def lambda_handler(event, context, session=None):
+def lambda_handler(event : str, context : str, session: boto3.session.Session =None) -> dict:
+    """Updates the remote bucket with any new data from Totesys.
+
+    
+    """
     runtime_key = f"last_ran_at.csv"
     bucket = "blackwater-ingestion-zone"
     table_list = [
