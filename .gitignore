@@ -13,8 +13,8 @@ serverless-output.yaml
 **/*_cache
 **/*pycache
 *coverage*
+**.zip
 venv/
-*.zip
 **/.terraform*
 terraform/init.sh
 zen.txt

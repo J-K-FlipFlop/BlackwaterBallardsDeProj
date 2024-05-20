@@ -21,7 +21,8 @@ def get_secret():
 
     session = boto3.session.Session(
         # uncomment out below code to run on local machine
-        # aws_access_key_id=pub_key, aws_secret_access_key=priv_key
+        # aws_access_key_id=pub_key,
+        # aws_secret_access_key=priv_key,
     )
     client = session.client(service_name="secretsmanager", region_name=region_name)
 
