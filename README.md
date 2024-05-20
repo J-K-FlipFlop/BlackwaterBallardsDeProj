@@ -119,4 +119,8 @@ Testing the write_to_s3 function. Asserts that the returned value of data stored
 #### test_csv_file_is_written_to_bucket
 Testing the write_csv_to_s3 function. Creates a mock boto3 session, and checks the result of the function is a successful message.
 
-#### 
+#### test_csv_uploads_correct_file_content
+Testing the write_csv_to_s3 function. Asserts that the body of data entered to the bucket by the function is correct.
+
+#### test_write_fails_when_bucket_not_found
+Testing the write_csv_to_s3 function. Asserts the function throws an error message when the fake bucket has not been created.
