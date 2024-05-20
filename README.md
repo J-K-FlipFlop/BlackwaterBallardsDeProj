@@ -72,4 +72,51 @@ Sets up the buckets which will store the data ingested and transformed by the la
 Gives access to the environment variables for terraform.
 
 ## Test
+Contains the testing for the python code.
 
+### test_lamb_handler
+Using pytest fixtures, establishes a mock aws client to test the lambda code.
+
+#### test_handler_returns_false_message
+Takes an s3_client as an argument. Connects to the mocked boto3 client, enters in some incorrect values and checks for a error message detailing the incorrect bucket name.
+
+#### test_handler_returns_true_message
+Takes an s3_client as an argument. Creates a bucket locally on the mocked boto3 client, and then connects to the bucket with nonesense data. Asserts a successful connection message about writing to the bucket.
+
+#### test_handler_writes_correct_number_of_files_to_bucket
+Takes an s3_client as an argument. Creates a bucket and writes to it, and then lists the objects inside, asserting the contents of the bucket are the same as the values entered.
+
+#### test_handler_writes_data_to_each_file
+Takes an s3_client as an argument. Creates a bucket and writes to it, and then lists the contents of each file. Asserts the size of each file is below 100.
+
+### test_utils
+Using pytest fixtures, establishes a mock aws client to test the lambda code.
+
+#### test_function_returns_a_list_of_dicts
+Testing the convert_table_to_dict function. Reads the sales_order table from Totesys, and asserts that every value in the response list is of the type dictionary.
+
+#### test_header_count_equal_to_result_count
+Testing the convert_table_to_dict function. Asserts the first value in the list is the same length as a list containing all the column headers.
+
+#### test_returns_error_message_if_table_name_not_found
+Testing the convert_table_to_dict function. Asserts a DatabaseError is raised if passing the wrong name to the function.
+
+#### test_sql_statement_not_vulnerable_to_injection
+Testing the convert_table_to_dict function. Passes in a dangerous SQL phrase, involving dropping the table. Asserts that the function raises a DatabaseError on this attempt at malicious injection.
+
+#### test_s3_takes_file
+Testing the write_to_s3 function. Passes in correctly formatted info to a bucket that is just created, and asserts the message confirms the writing has gone through.
+
+#### test_s3_uploads_correct_file_content
+Testing the write_to_s3 function. Checks the content of data uploaded to a fake bucket via a get object command. Asserts the body of the reponse is the same as the data entered.
+
+#### test_write_to_s3_fails_when_no_bucket
+Testing the write_to_s3 function. Asserts an error value when trying to write to a bucket that does not exist.
+
+#### test_write_to_s3_works_with_csv
+Testing the write_to_s3 function. Asserts that the returned value of data stored to the bucket is correct when it was originally in csv format.
+
+#### test_csv_file_is_written_to_bucket
+Testing the write_csv_to_s3 function. Creates a mock boto3 session, and checks the result of the function is a successful message.
+
+#### 
