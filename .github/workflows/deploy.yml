@@ -1,0 +1,71 @@
+name: blackwater-cicd
+
+###### UNCOMMENT to automate ######
+# # Specifies the trigger for this workflow
+# on:
+#     push:
+#         branches:
+#             -main
+
+# Currently manual because code is still being built
+on:
+    workflow_dispatch:
+        inputs:
+            environment:
+                type: string
+                default: dev
+                required: false
+
+
+
+# 'Header' for all jobs needed to run
+jobs:
+    run-tests:
+        name: automated-testing
+        # Runs on latest ubuntu OS
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repo
+            # Checks-out your repo under $GITHUB_WORKSPACE our workflow can access it
+              uses: actions/checkout@v4
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                python-version: '3.11.1'
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                 aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                 aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                 aws-region: ${{ secrets.AWS_REGION }}
+            - name: Install Make
+              run: sudo apt install make -y
+            - name: Run all requirements
+              run: make all
+
+    deployment:
+        name: deploy-lambda
+        needs: run-tests
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repo
+              uses: actions/checkout@v4
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                aws-region: ${{ secrets.AWS_REGION }}
+            - name: Install Terraform
+              uses: hashicorp/setup-terraform@v3
+            - name: Terraform init
+              working-directory: terraform
+              run: terraform init
+            - name: Terraform plan
+              working-directory: terraform
+              run: terraform plan
+            - name: Terraform apply
+              working-directory: terraform
+              run: terraform apply -auto-approve
+
+        
