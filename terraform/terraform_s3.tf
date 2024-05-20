@@ -1,6 +1,11 @@
 #bucket for storage of extracted totesys data (if doesn't exist will create):
 resource "aws_s3_bucket" "tf_ingestion_zone" {
-    bucket = "blackwater-ingestion-zone"
+  bucket = "blackwater-ingestion-zone"
+}
+
+#bucket for storage of extracted totesys data (if doesn't exist will create):
+resource "aws_s3_bucket" "tf_processed_zone" {
+  bucket = "blackwater-processed-zone"
 }
 
 # #bucket for safe storage of lambda code (if doesn't exist will create):
