@@ -50,7 +50,7 @@ class TestLambdaHandler:
         )
         lambda_handler("unused", "unused2", session)
         response = s3_client.list_objects_v2(Bucket="blackwater-ingestion-zone")
-        assert len(response["Contents"]) == 11
+        assert len(response["Contents"]) == 12
 
     def test_handler_writes_data_to_each_file(self, s3_client):
         session = boto3.session.Session(
@@ -63,4 +63,4 @@ class TestLambdaHandler:
         lambda_handler("unused", "unused2", session)
         response = s3_client.list_objects_v2(Bucket="blackwater-ingestion-zone")
         for file in response["Contents"]:
-            assert file["Size"] > 100
+            assert file["Size"] > 1

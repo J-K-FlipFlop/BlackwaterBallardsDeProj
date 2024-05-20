@@ -1,7 +1,10 @@
-from src.extract_lambda.utils import convert_table_to_dict, write_csv_to_s3
+from src.extract_lambda.utils import (convert_table_to_dict,
+                                       write_csv_to_s3,
+                                       update_data_in_bucket)
 import boto3
 import os
 import logging
+from datetime import datetime
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
@@ -29,10 +32,12 @@ def lambda_handler(event, context, session=None):
         "transaction",
     ]
 
+    time_of_day = datetime.now()
+
     for table in table_list:
-        data = convert_table_to_dict(table)
+        # data = convert_table_to_dict(table)
         key = f"playground/{table}.csv"
-        response = write_csv_to_s3(session, data, bucket, key)
+        response = update_data_in_bucket(table, bucket, session, time_of_day)
         if response["success"]:
             print(f"EXTRACTING TO: table: {table}, key: {key}")
         else:

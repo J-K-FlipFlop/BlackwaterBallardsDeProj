@@ -1,6 +1,9 @@
 from src.extract_lambda.connection import connect_to_db
 from botocore.exceptions import ClientError
 from pg8000.exceptions import DatabaseError
+from datetime import datetime
+from pprint import pprint as pp
+import boto3
 import logging
 import pandas as pd
 import re
@@ -67,3 +70,37 @@ def write_csv_to_s3(session, data, bucket, key):
         response = {"success": False, "message": c.response["Error"]["Message"]}
         # print(response)
         return response
+
+def update_data_in_bucket(table: str, bucket, session, time_of_day):
+    table_info = convert_table_to_dict(table)
+    runtime_key = f"last_ran_at.csv"
+    try:
+        get_previous_runtime = boto3.resource("s3").Object(bucket, runtime_key)
+        previous_lambda_runtime_uncut = (
+            get_previous_runtime.get()["Body"].read().decode("utf-8")
+        )
+        # if structure of blackwater-ingestion-zone/last_ran_at changes slice on line below will likely have to be updated too
+        previous_lambda_runtime = datetime.strptime(
+            previous_lambda_runtime_uncut[12:-2], "%Y-%m-%d %H:%M:%S.%f"
+        )
+    except:
+        previous_lambda_runtime = datetime(1999, 12, 31, 23, 59, 59, 999999)
+    pp(previous_lambda_runtime)
+    new_items = []
+    # current_lambda_runtime = datetime.now()
+
+    for item in table_info:
+        item_latest_update = item["last_updated"]
+        if item_latest_update > previous_lambda_runtime:
+            new_items.append(item)
+
+    data = new_items
+    key = f"update_test/{time_of_day}/{table}.csv"
+    write_csv_to_s3(session=session, data=data, bucket=bucket, key=key)
+    current_runtime = [{"last_ran_at": time_of_day}]
+
+    response = write_csv_to_s3(
+        session=session, data=current_runtime, bucket=bucket, key=runtime_key
+    )
+
+    return response
