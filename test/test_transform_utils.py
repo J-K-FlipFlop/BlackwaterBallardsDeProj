@@ -35,7 +35,7 @@ class TestReadLatestChanges:
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         result = read_latest_changes(s3_client)
         assert result["timestamp"] == timestamp
-        assert result["table_list"] == [
+        assert result["file_list"] == [
             "update_test/2024-05-20 12:10:03.998128/staff.csv"
         ]
 
@@ -53,7 +53,7 @@ class TestReadLatestChanges:
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key2)
         result = read_latest_changes(s3_client)
         assert result["timestamp"] == timestamp
-        assert result["table_list"] == [
+        assert result["file_list"] == [
             "update_test/2024-05-20 12:10:03.998128/staff.csv",
             "update_test/2024-05-20 12:10:03.998128/currency.csv",
         ]
@@ -75,7 +75,7 @@ class TestReadLatestChanges:
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key2)
         result = read_latest_changes(s3_client)
         assert result["timestamp"] == timestamp
-        assert result["table_list"] == [
+        assert result["file_list"] == [
             "update_test/2024-05-20 12:10:03.998128/staff.csv",
         ]
 
