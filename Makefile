@@ -82,3 +82,6 @@ check-coverage:
 
 ## Run all checks
 run-checks: security-test run-black unit-test check-coverage
+
+## Run all commands
+all: requirements dev-setup run-checks
