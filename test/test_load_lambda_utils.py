@@ -2,6 +2,7 @@ import pytest
 import boto3
 import os
 import datetime
+import pandas as pd
 from moto import mock_aws
 from src.load_lambda.utils import (
     get_data_from_processed_zone,
@@ -103,9 +104,38 @@ class TestGetLatestProcessedFileList:
 
 class TestGetProcessedData:
 
-    def test_output_parquet_type(self, s3_client):
+    def test_output_is_failure_if_no_bucket(self, s3_client):
+        result = get_data_from_processed_zone(
+            client=s3_client, pq_key="test.parquet"
+        )
+        assert result["status"] == "failure"
+
+    def test_output_is_dict_containing_pandas_dataframe(self, s3_client):
         s3_client.create_bucket(
             Bucket="blackwater-processed-zone",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
-        key = "dummy_parquet.parquet"
+        filename = "test.parquet"
+        bucket = "blackwater-processed-zone"
+        key = "test.parquet"
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        result = get_data_from_processed_zone(
+            client=s3_client, pq_key="test.parquet"
+        )
+        assert isinstance(result, dict)
+        assert isinstance(result["data"], pd.DataFrame)
+
+    def test_dataframe_content_matches_file_content(self, s3_client):
+        s3_client.create_bucket(
+            Bucket="blackwater-processed-zone",
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        filename = "test.parquet"
+        bucket = "blackwater-processed-zone"
+        key = "test.parquet"
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        result = get_data_from_processed_zone(
+            client=s3_client, pq_key="test.parquet"
+        )
+        assert len(result["data"]) == 2
+        assert len(result["data"].columns.values) == 12
