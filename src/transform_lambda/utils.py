@@ -32,7 +32,9 @@ def read_latest_changes(client: boto3.client) -> dict:
         latest_file_name = file_data[0]["Key"]
         timestamp = latest_file_name.split("/")[1]
         print(timestamp)
-        file_list = [file["Key"] for file in file_data if timestamp in file["Key"]]
+        file_list = [
+            file["Key"] for file in file_data if timestamp in file["Key"]
+        ]
         return {
             "status": "success",
             "timestamp": timestamp,
@@ -53,7 +55,20 @@ def read_latest_changes(client: boto3.client) -> dict:
 
 def get_data_from_ingestion_bucket(
     key: str, session: boto3.session.Session
-) -> pd.DataFrame:
+) -> dict:
+    """Downloads csv data from S3 ingestion bucket and returns a pandas dataframe
+
+    Args:
+        key: string representing S3 object to be downloaded
+        session: Boto3 session
+
+    Returns:
+        A dictionary containing the following:
+            status: shows whether the function ran successfully
+            data: a pandas dataframe containing downloaded data (if successful)
+            message: a relevant error message (if unsuccessful)
+    """
+
     try:
         df = wr.s3.read_csv(
             path=f"s3://blackwater-ingestion-zone/{key}", boto3_session=session
@@ -77,6 +92,19 @@ def write_parquet_data_to_s3(
     session: boto3.session.Session,
     timestamp=None,
 ) -> dict:
+    """Writes a pandas dataframe to S3 processed bucket in parquet format
+
+    Args:
+        data: a pandas dataframe
+        table_name: name of table to be written
+        session: Boto3 session
+        timestamp: optional, passed into function so all files transformed by function are stored in same S3 folder
+
+    Returns:
+        A dictionary containing the following:
+            status: shows whether the function ran successfully
+            message: a relevant success/failure message
+    """
     if isinstance(data, pd.DataFrame):
         try:
             wr.s3.to_parquet(
