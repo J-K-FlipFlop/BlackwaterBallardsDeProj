@@ -48,9 +48,7 @@ def get_latest_processed_file_list(client: boto3.client) -> dict:
         }
 
 
-def get_data_from_processed_zone(
-    client: boto3.session.Session, pq_key: str
-) -> dict:
+def get_data_from_processed_zone(client: boto3.client, pq_key: str) -> dict:
     bucket = "blackwater-processed-zone"
     try:
         df = wr.s3.read_parquet(path=f"s3://{bucket}/{pq_key}")
@@ -58,3 +56,20 @@ def get_data_from_processed_zone(
     except ClientError as c:
         logger.info(f"Boto3 ClientError: {str(c)}")
         return {"status": "failure", "message": c.response["Error"]["Message"]}
+
+
+def insert_data_into_data_warehouse(
+    client: boto3.client, pq_key: str
+):
+  data = get_data_from_processed_zone(client, pq_key)
+  if data['status'] == 'success':
+    try:
+        table_name = ''
+        conn = connect_to_db()
+        query = f"INSERT INTO {table_name} VALUES ()"
+    except DatabaseError:
+        pass
+    finally:
+        conn.close()
+  else:
+      return data

@@ -3,11 +3,12 @@ from src.load_lambda.credentials_manager import get_secret
 
 creds = get_secret()
 
-# user = creds["warehouse_username"]
-# password = creds["warehouse_password"]
-# database = creds["warehouse_dbname"]
-# host = creds["warehouse_host"]
-# port = creds["warehouse_port"]
+user = creds["username"]
+password = creds["password"]
+database = creds["dbname"]
+host = creds["host"]
+port = creds["port"]
+schema = creds["schema"]
 
 
 def connect_to_db():
