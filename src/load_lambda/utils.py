@@ -26,13 +26,39 @@ insert data into warehouse
     functionality
 """
 
-def get_data_from_processed_zone(client: boto3.session.Session, pq_table_name: str):
+
+def get_latest_processed_file_list(client):
     bucket = "blackwater-processed-zone"
-    filepath_to_parquet = f'{pq_table_name}.parquet'
+    timestamp = "2024-05-20 12:10:03.998128"
     try:
-        parquet_data_table = boto3.resource("s3").Object(bucket, filepath_to_parquet)
+        output = client.list_objects_v2(Bucket=bucket)
+        file_list = [
+            file["Key"]
+            for file in output["Contents"]
+            if timestamp in file["Key"]
+        ]
+        return {
+            "status": "success",
+            "file_list": file_list,
+        }
+    except ClientError:
+        return {
+            "status": "failure",
+            "file_list": [],
+        }
+
+
+def get_data_from_processed_zone(
+    client: boto3.session.Session, pq_table_name: str
+):
+    bucket = "blackwater-processed-zone"
+    filepath_to_parquet = f"{pq_table_name}.parquet"
+    try:
+        parquet_data_table = boto3.resource("s3").Object(
+            bucket, filepath_to_parquet
+        )
         extracted_parquet_result = parquet_data_table.get()
         return extracted_parquet_result
     except ClientError as c:
-        logger.info(f'Boto3 ClientError: {str(c)}')
+        logger.info(f"Boto3 ClientError: {str(c)}")
         return {"success": False, "message": c.response["Error"]["Message"]}

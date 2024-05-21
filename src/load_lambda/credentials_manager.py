@@ -16,7 +16,7 @@ import os
 
 def get_secret():
 
-    secret_name = "warehouse-blackwater-credentials"
+    secret_name = "totesys-blackwater-credentials" # change this when added to secrets manager
     region_name = "eu-west-2"
 
     session = boto3.session.Session(
