@@ -3,6 +3,7 @@ from botocore.exceptions import ClientError
 from datetime import datetime
 import awswrangler as wr
 from awswrangler.exceptions import NoFilesFound
+import math
 import pandas as pd
 from src.transform_lambda.utils import read_latest_changes, get_data_from_ingestion_bucket
 
@@ -263,17 +264,59 @@ def convert_sales_order(client, session):
 ## x = convert_sales_order
 ## df_sales = x["data"]
 def create_dim_date(df_sales):
-    sales_dict = df_sales.to_dict()
+    df_created_date = df_sales["created_date"]
+    df_last_updated = df_sales["last_updated_date"]
+    df_agreed_pay_date = df_sales["agreed_payment_date"]
+    df_agreed_del_date = df_sales["agreed_delivery_date"]
+    df_created_date = df_created_date.drop_duplicates()
+    df_last_updated = df_last_updated.drop_duplicates()
+    df_agreed_pay_date = df_agreed_pay_date.drop_duplicates()
+    df_agreed_del_date = df_agreed_del_date.drop_duplicates()
+
+    df_dates = pd.DataFrame()
+    df_dates["dates"] = pd.concat([df_created_date,
+                         df_agreed_pay_date,
+                         df_agreed_del_date,
+                         df_last_updated])
+    
+    print(df_dates)
     # print(sales_dict)
+    dim_dates = df_dates.to_dict()
+    # print(dates_dict["dates"])
+    dates_dict = dim_dates["dates"]
+    dim_dates["year"] = {}
+    dim_dates["month"] = {}
+    dim_dates["day"] = {}
+    dim_dates["day_of_week"] = {}
+    dim_dates["day_name"] = {}
+    dim_dates["month_name"] = {}
+    dim_dates["quarter"] = {}
+
+    for key in dates_dict:
+        date = dates_dict[key]
+        date = datetime.strptime(dates_dict[key], "%Y-%m-%d")
+        dim_dates["year"][key] = date.year
+        dim_dates["month"][key] = date.month
+        dim_dates["day"][key] = date.day
+        dim_dates["day_of_week"][key] = date.weekday()
+        dim_dates["day_name"][key] = date.strftime("%A")
+        dim_dates["month_name"][key] = date.strftime("%B")
+        dim_dates["quarter"][key] = (date.month - 1) // 3 + 1
+
+    df_dates = pd.DataFrame(dim_dates)
+
+    print(df_dates)
+    output = {"status": "success", "data": df_dates}
+    return output
 
 session = boto3.session.Session()
 client = boto3.client("s3")
 
-convert_design(client, session)
-convert_currency(client, session)
-convert_staff(client, session)
-convert_location(client, session)
-convert_counterparty(client, session)
+# convert_design(client, session)
+# convert_currency(client, session)
+# convert_staff(client, session)
+# convert_location(client, session)
+# convert_counterparty(client, session)
 x = convert_sales_order(client, session)
 df_sales = x["data"]
 create_dim_date(df_sales)
