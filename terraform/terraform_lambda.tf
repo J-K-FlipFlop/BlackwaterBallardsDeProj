@@ -62,6 +62,60 @@ resource "aws_lambda_layer_version" "utility_layer" {
   source_code_hash    = data.archive_file.archive.output_base64sha256
 }
 
+######## Load Lambda ########
+
+#load lambda, takes data from processed zone and inserts into data warehouse
+resource "aws_lambda_function" "load_lambda" {
+  function_name    = "load_lambda"
+  filename         = "${path.module}/../lambda_load.zip"
+  role             = aws_iam_role.load_lambda_role.arn
+  handler          = "handler.load_lambda_handler"
+  runtime          = "python3.11"
+  source_code_hash = data.archive_file.load_lambda_dir_zip.output_base64sha256
+  layers           = ["arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python311:12", aws_lambda_layer_version.utility_layer_load.arn]
+  timeout          = 45
+  memory_size      = 1024
+}
+
+#create zip file for load lambda function
+data "archive_file" "load_lambda_dir_zip" {
+  type        = "zip"
+  source_file = "${path.module}/../src/load_lambda/handler.py"
+  output_path = "${path.module}/../lambda_load.zip"
+}
+
+locals {
+  source_files_load = ["${path.module}/../src/load_lambda/connection.py", "${path.module}/../src/load_lambda/credentials_manager.py", "${path.module}/../src/load_lambda/utils.py"]
+}
+
+data "template_file" "t_file_load" {
+  count = length(local.source_files_load)
+
+  template = file(element(local.source_files_load, count.index))
+}
+
+resource "local_file" "to_temp_dir_load" {
+  count    = length(local.source_files_load)
+  filename = "${path.module}/temp_load/python/src/load_lambda/${basename(element(local.source_files_load, count.index))}"
+  content  = element(data.template_file.t_file_load.*.rendered, count.index)
+}
+
+data "archive_file" "archive_load" {
+  type        = "zip"
+  output_path = "${path.module}/../aws_utils/utils_load.zip"
+  source_dir  = "${path.module}/temp_load"
+
+  depends_on = [
+    local_file.to_temp_dir_load,
+  ]
+}
+
+resource "aws_lambda_layer_version" "utility_layer_load" {
+  layer_name          = "util_layer_load"
+  compatible_runtimes = ["python3.11"]
+  filename            = "${path.module}/../aws_utils/utils_load.zip"
+  source_code_hash    = data.archive_file.archive_load.output_base64sha256
+}
 
 
 #determine source file to extract and its desired output path
