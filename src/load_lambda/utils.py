@@ -26,16 +26,19 @@ insert data into warehouse
     functionality
 """
 
-
 def get_latest_processed_file_list(client: boto3.client) -> dict:
     bucket = "blackwater-processed-zone"
-    timestamp = "2024-05-20 12:10:03.998128" # probably need to get this from processed bucket?
+    runtime_key = f"last_ran_at.csv"
+    get_previous_runtime = client.get_object(Bucket='blackwater-ingestion-zone', Key=runtime_key)
+    timestamp = get_previous_runtime["Body"].read().decode("utf-8")
+    timestamp_filtered = timestamp[12:-2]
+    #pp(timestamp_filtered)
     try:
         output = client.list_objects_v2(Bucket=bucket)
         file_list = [
             file["Key"]
             for file in output["Contents"]
-            if timestamp in file["Key"]
+            if timestamp_filtered in file["Key"]
         ]
         return {
             "status": "success",
@@ -70,7 +73,6 @@ def insert_data_into_data_warehouse(
         for i, row in data['data'].iterrows():
            query += f"({row['currency_code']}, {row['currency_name']}), "
         query = f"{query[:-2]};"
-        print(query)
         # conn.run(query)
         return {"status": "success",
                 "table_name": table_name,
