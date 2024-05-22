@@ -54,7 +54,7 @@ def read_latest_changes(client: boto3.client) -> dict:
 
 
 def get_data_from_ingestion_bucket(
-    key: str, session: boto3.session.Session
+    key: str, filename: str, session: boto3.session.Session
 ) -> dict:
     """Downloads csv data from S3 ingestion bucket and returns a pandas dataframe
 
@@ -70,8 +70,10 @@ def get_data_from_ingestion_bucket(
     """
 
     try:
+        path=f"s3://blackwater-ingestion-zone/{key}"
+        path2=f"s3://bucket-for-my-emotions/playground/{filename}"
         df = wr.s3.read_csv(
-            path=f"s3://blackwater-ingestion-zone/{key}", boto3_session=session
+            path=path2, boto3_session=session,
         )
         print(df.columns)
         return {"status": "success", "data": df}
