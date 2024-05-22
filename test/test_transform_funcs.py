@@ -42,6 +42,7 @@ class TestConvertDesign:
         removed_columns = ['created_at', 'last_updated']
         for column in removed_columns:
             assert column not in result["data"].columns
+            assert len(result["data"].columns) == len(column_names)
 
     def test_convert_design_without_req_file_returns_expected_error(self, s3_client, file_name="currency"):
         timestamp = "2024-05-20 12:10:03.998128"
@@ -79,7 +80,7 @@ class TestConvertDesign:
         assert result['timestamp'] == ""
        
 class TestConvertCurrency:
-    def test_convert_curr_rtns_df_type_removes_drop_cols_and_adds_curr_name_col(self, s3_client, file_name="currency"):
+    def test_convert_currency_rtns_df_type_removes_drop_cols_and_adds_curr_name_col(self, s3_client, file_name="currency"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
         key = f"update_test/{timestamp}/{file_name}.csv"
@@ -102,6 +103,42 @@ class TestConvertCurrency:
         removed_columns = ['created_at', 'last_updated']
         for column in removed_columns:
             assert column not in result["data"].columns
+            assert len(result["data"].columns) == len(column_names)
+
+    def test_convert_currency_without_req_file_returns_expected_error(self, s3_client, file_name="design"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = f"test/data/{file_name}.csv"
+        key = f"update_test/{timestamp}/{filename}.csv"
+        bucket = "blackwater-ingestion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        result = convert_currency(s3_client, session)
+        assert result['status'] == "failure"
+        assert str(result['message']) == f"No files Found on: s3://{bucket}/update_test/{timestamp}/currency.csv."
+
+    def test_convert_currency_without_req_bucket_returns_expected_error(self, s3_client, file_name="currency"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = f"test/data/{file_name}.csv"
+        key = f"update_test/{timestamp}/{filename}.csv"
+        bucket = "blackwater-implosion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        result = convert_currency(s3_client, session)
+        #error message on utils line 43-47 need improvement?
+        assert result['status'] == "failure"
+        assert result['timestamp'] == ""
 
 class TestConvertStaff:
     def test_convert_staff_rtns_df_type_removes_drop_cols_and_adds_dept_cols(self, s3_client, file_name1="staff", file_name2="department"):
@@ -130,9 +167,51 @@ class TestConvertStaff:
         removed_columns = ['created_at', 'last_updated', 'manager', 'department_id']
         for column in removed_columns:
             assert column not in result["data"].columns
+            assert len(result["data"].columns) == len(column_names)
+        
+    def test_convert_staff_without_req_file_returns_expected_error(self, s3_client, file_name1="design", file_name2="department"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename1 = f"test/data/{file_name1}.csv"
+        filename2 = f"test/data/{file_name2}.csv"
+        key1 = f"update_test/{timestamp}/{filename1}.csv"
+        key2 = f"update_test/{timestamp}/{filename2}.csv"
+        bucket = "blackwater-ingestion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        result = convert_staff(s3_client, session)
+        assert result['status'] == "failure"
+        assert str(result['message']) == f"No files Found on: s3://{bucket}/update_test/{timestamp}/staff.csv."
+
+    def test_convert_staff_without_req_bucket_returns_expected_error(self, s3_client, file_name1="staff", file_name2="department"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename1 = f"test/data/{file_name1}.csv"
+        filename2 = f"test/data/{file_name2}.csv"
+        key1 = f"update_test/{timestamp}/{filename1}.csv"
+        key2 = f"update_test/{timestamp}/{filename2}.csv"
+        bucket = "brownwater-ingestion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        result = convert_currency(s3_client, session)
+        #error message on utils line 43-47 need improvement?
+        assert result['status'] == "failure"
+        assert result['timestamp'] == ""
 
 class TestConvertLocation:
-    def test_convert_curr_rtns_df_type_removes_drop_cols_and_adds_loc_id_col(self, s3_client, file_name="address"):
+    def test_convert_location_rtns_df_type_removes_drop_cols_and_adds_loc_id_col(self, s3_client, file_name="address"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
         key = f"update_test/{timestamp}/{file_name}.csv"
@@ -155,6 +234,42 @@ class TestConvertLocation:
         removed_columns = ['created_at', 'last_updated', 'address_id']
         for column in removed_columns:
             assert column not in result["data"].columns
+            assert len(result["data"].columns) == len(column_names)
+
+    def test_convert_location_without_req_file_returns_expected_error(self, s3_client, file_name="department"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = f"test/data/{file_name}.csv"
+        key = f"update_test/{timestamp}/{filename}.csv"
+        bucket = "blackwater-ingestion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        result = convert_location(s3_client, session)
+        assert result['status'] == "failure"
+        assert str(result['message']) == f"No files Found on: s3://{bucket}/update_test/{timestamp}/address.csv."
+
+    def test_convert_location_without_req_bucket_returns_expected_error(self, s3_client, file_name="address"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = f"test/data/{file_name}.csv"
+        key = f"update_test/{timestamp}/{filename}.csv"
+        bucket = "blackwater-procrastination-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        result = convert_location(s3_client, session)
+        #error message on utils line 43-47 need improvement?
+        assert result['status'] == "failure"
+        assert result['timestamp'] == ""
 
 class TestConvertCounterParty:
     def test_convert_counter_rtns_df_type_removes_drop_cols_and_adds_loc_cols(self, s3_client, file_name1="address", file_name2="counterparty"):
@@ -177,12 +292,54 @@ class TestConvertCounterParty:
         result = convert_counterparty(s3_client, session)
         assert result["status"] == "success"
         assert isinstance(result["data"], pd.DataFrame)
-        column_names = ['counterparty_id', 'counterparty_legal_name', 'counterparty_legal_address_line_1', 'counterparty_legal_address_line_2', 'counterparty_legal_district', 'counterparty_legal_postal_code', 'counterparty_legal_phone_number']
+        column_names = ['counterparty_id', 'counterparty_legal_name', 'counterparty_legal_address_line_1', 'counterparty_legal_address_line_2', 'counterparty_legal_district', 'counterparty_legal_city', 'counterparty_legal_postal_code', 'counterparty_legal_country', 'counterparty_legal_phone_number']
         for column in column_names:
             assert column in result["data"].columns
         removed_columns = ['created_at', 'last_updated', 'legala_address_id', 'commercial_contact', 'delivery_contact', 'address_id', 'address_line_1', 'address_line_2', 'district', 'city', 'postal_code', 'country', 'phone']
         for column in removed_columns:
             assert column not in result["data"].columns
+            assert len(result["data"].columns) == len(column_names)
+
+    def test_convert_counterparty_without_req_file_returns_expected_error(self, s3_client, file_name1="address", file_name2="department"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename1 = f"test/data/{file_name1}.csv"
+        filename2 = f"test/data/{file_name2}.csv"
+        key1 = f"update_test/{timestamp}/{filename1}.csv"
+        key2 = f"update_test/{timestamp}/{filename2}.csv"
+        bucket = "blackwater-ingestion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        result = convert_counterparty(s3_client, session)
+        assert result['status'] == "failure"
+        assert str(result['message']) == f"No files Found on: s3://{bucket}/update_test/{timestamp}/counterparty.csv."
+
+    def test_convert_counterparty_without_req_bucket_returns_expected_error(self, s3_client, file_name1="address", file_name2="counterparty"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename1 = f"test/data/{file_name1}.csv"
+        filename2 = f"test/data/{file_name2}.csv"
+        key1 = f"update_test/{timestamp}/{filename1}.csv"
+        key2 = f"update_test/{timestamp}/{filename2}.csv"
+        bucket = "detergent-tab-ingestion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        result = convert_counterparty(s3_client, session)
+        #error message on utils line 43-47 need improvement?
+        assert result['status'] == "failure"
+        assert result['timestamp'] == ""
 
 class TestConvertSales:
     def test_convert_salesorder_rtns_df_type_removes_drop_cols_and_adds_time_and_date_col(self, s3_client, file_name="sales_order"):
@@ -208,9 +365,45 @@ class TestConvertSales:
         removed_columns = ['created_at', 'last_updated']
         for column in removed_columns:
             assert column not in result["data"].columns
+            assert len(result["data"].columns) == len(column_names)
+
+    def test_convert_sales_order_without_req_file_returns_expected_error(self, s3_client, file_name="address"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = f"test/data/{file_name}.csv"
+        key = f"update_test/{timestamp}/{filename}.csv"
+        bucket = "blackwater-ingestion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        result = convert_sales_order(s3_client, session)
+        assert result['status'] == "failure"
+        assert str(result['message']) == f"No files Found on: s3://{bucket}/update_test/{timestamp}/sales_order.csv."
+
+    def test_convert_sales_order_without_req_bucket_returns_expected_error(self, s3_client, file_name="sales_order"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = f"test/data/{file_name}.csv"
+        key = f"update_test/{timestamp}/{filename}.csv"
+        bucket = "blackwater-infestation-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        result = convert_sales_order(s3_client, session)
+        #error message on utils line 43-47 need improvement?
+        assert result['status'] == "failure"
+        assert result['timestamp'] == ""
 
 class TestConvertDates:
-    def test_convert_dates_rtns_df_type_removes_drop_cols_and_adds_sales_cols(self, s3_client, file_name="sales_order"):
+    def test_create_dim_date_rtns_df_type_removes_drop_cols_and_adds_sales_cols(self, s3_client, file_name="sales_order"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
         key = f"update_test/{timestamp}/{file_name}.csv"
@@ -233,4 +426,40 @@ class TestConvertDates:
             assert column in date_result["data"].columns
             assert len(date_result["data"].columns) == len(column_names)
 
+    def test_create_dim_date_without_req_file_returns_expected_error(self, s3_client, file_name="counterparty"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = f"test/data/{file_name}.csv"
+        key = f"update_test/{timestamp}/{filename}.csv"
+        bucket = "blackwater-infestation-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        result = convert_sales_order(s3_client, session)
+        #returns key error because of missing dependency of convert sales order pre-requisite (no data in result)
+        with pytest.raises(KeyError) as e:
+            create_dim_date(result['data'])
+            e.response == 'data'
     
+    def test_convert_sales_order_without_req_bucket_returns_expected_error(self, s3_client, file_name="sales_order"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = f"test/data/{file_name}.csv"
+        key = f"update_test/{timestamp}/{filename}.csv"
+        bucket = "blackwater-congestion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        result = convert_sales_order(s3_client, session)
+        #returns key error because of missing dependency of convert sales order pre-requisite (no data in result)
+        with pytest.raises(KeyError) as e:
+            create_dim_date(result['data'])
+            e.response == 'data'
