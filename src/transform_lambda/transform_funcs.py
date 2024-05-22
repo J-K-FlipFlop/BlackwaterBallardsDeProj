@@ -23,7 +23,6 @@ def convert_design(client, session):
     else:
         return response2
     
-    print(df_design)
     output = {"status": "success", "data": df_design}
     return output
     
@@ -60,7 +59,6 @@ def convert_currency(client, session):
                 curr_codes[index] = "unknown currency"
     table_as_dict["currency_name"] = curr_names
     df_currency = pd.DataFrame(table_as_dict)
-    print(df_currency)
     output = {"status": "success", "data": df_currency}
     return output
 
@@ -114,7 +112,6 @@ def convert_staff(client, session):
                           loc,
                           "email_address"]]
     
-    print(df_staff)
     output = {"status": "success", "data": df_staff}
     return output
 
@@ -139,7 +136,6 @@ def convert_location(client, session):
     df_location = pd.DataFrame(table_as_dict)
     df_location = df_location.drop(['address_id'], axis=1)
     df_location = df_location[['location_id'] + [col for col in df_location.columns if col != 'location_id']]
-    print(df_location)
     output = {"status": "success", "data": df_location}
     return output
 
@@ -199,8 +195,6 @@ def convert_counterparty(client, session):
         dict_counter["counterparty_legal_phone_number"][key] = dict_address[
             "phone"
         ][ids -1]
-    # pp(dict_counter)
-    print(dict_counter["counterparty_legal_address_line_1"], '<--- look here')
     df_counter = pd.DataFrame(dict_counter)
     df_counter = df_counter.drop(
         [
@@ -211,7 +205,8 @@ def convert_counterparty(client, session):
             "last_updated",
         ], axis=1
     )
-    print(df_counter, "<-- df_counter")
+    output = {"status": "success", "data": df_counter}
+    return output
 
 def convert_sales_order(client, session):
     response1 = read_latest_changes(client)
@@ -255,7 +250,7 @@ def convert_sales_order(client, session):
 
     df_sales = pd.DataFrame(sales_dict)
     df_sales = df_sales.drop(["created_at", "last_updated"], axis=1)
-    print(df_sales)
+
     output = {"status": "success", "data": df_sales}
     return output
 
@@ -302,7 +297,6 @@ def create_dim_date(df_sales):
 
     df_dates = pd.DataFrame(dim_dates)
 
-    print(df_dates)
     output = {"status": "success", "data": df_dates}
     return output
 
@@ -314,6 +308,8 @@ client = boto3.client("s3")
 # convert_staff(client, session)
 # convert_location(client, session)
 # convert_counterparty(client, session)
-x = convert_sales_order(client, session)
-df_sales = x["data"]
-create_dim_date(df_sales)
+# x = convert_sales_order(client, session)
+# print()
+# print(x["data"].columns)
+# df_sales = x["data"]
+# create_dim_date(df_sales)
