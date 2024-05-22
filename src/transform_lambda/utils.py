@@ -31,7 +31,7 @@ def read_latest_changes(client: boto3.client) -> dict:
         )
         latest_file_name = file_data[0]["Key"]
         timestamp = latest_file_name.split("/")[1]
-        print(timestamp)
+        # print(timestamp)
         file_list = [
             file["Key"] for file in file_data if timestamp in file["Key"]
         ]
@@ -53,8 +53,9 @@ def read_latest_changes(client: boto3.client) -> dict:
 # return data in some format
 
 
+
 def get_data_from_ingestion_bucket(
-    key: str, filename: str, session: boto3.session.Session
+    key: str, filename: str, session: boto3.session.Session, update=True
 ) -> dict:
     """Downloads csv data from S3 ingestion bucket and returns a pandas dataframe
 
@@ -68,14 +69,15 @@ def get_data_from_ingestion_bucket(
             data: a pandas dataframe containing downloaded data (if successful)
             message: a relevant error message (if unsuccessful)
     """
-
+    if update:
+        path=f"s3://blackwater-ingestion-zone/update_test/{key}/{filename}"
+    else:
+        path=f"s3://bucket-for-my-emotions/playground/{filename}"
     try:
-        path=f"s3://blackwater-ingestion-zone/{key}"
-        path2=f"s3://bucket-for-my-emotions/playground/{filename}"
         df = wr.s3.read_csv(
-            path=path2, boto3_session=session,
+            path=path, boto3_session=session
         )
-        print(df.columns)
+        # print(df.columns)
         return {"status": "success", "data": df}
     except ClientError as ce:
         return {"status": "failure", "message": ce.response}

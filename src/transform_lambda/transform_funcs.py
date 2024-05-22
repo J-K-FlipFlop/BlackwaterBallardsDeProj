@@ -72,7 +72,7 @@ def convert_staff(client, session):
     filename1 = "staff.csv"
     filename2 = "department.csv"
     response_staff = get_data_from_ingestion_bucket(key, filename1, session)
-    response_department = get_data_from_ingestion_bucket(key, filename2, session)
+    response_department = get_data_from_ingestion_bucket(key, filename2, session, update=False)
 
     if response_staff["status"] == "success":
         df_staff = response_staff["data"]
@@ -115,7 +115,7 @@ def convert_staff(client, session):
     output = {"status": "success", "data": df_staff}
     return output
 
-def convert_location(client, session):
+def convert_location(client, session, update=False):
     response1 = read_latest_changes(client)
     if response1["status"] == "success":
         key = response1["timestamp"]
@@ -130,7 +130,7 @@ def convert_location(client, session):
         df = df.drop(['created_at', 'last_updated'], axis=1)
         table_as_dict = df.to_dict()
     else:
-        return response2["message"]
+        return response2
     
     table_as_dict['location_id'] = table_as_dict['address_id']
     df_location = pd.DataFrame(table_as_dict)

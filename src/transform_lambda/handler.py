@@ -24,7 +24,12 @@ def lambda_handler(event, context, session=None, client=None):
     loc = convert_location(client, session)
     stf = convert_staff(client, session)
     sales = convert_sales_order(client, session)
-    date = create_dim_date(sales["data"])
+    # print(loc)
+    # print(sales)
+
+    if sales["status"] == "success":
+        date = create_dim_date(sales["data"])
+
 
     counter = 0
 
@@ -74,6 +79,7 @@ def lambda_handler(event, context, session=None, client=None):
         print(resp)
         logging.info(resp)
     else:
+        logging.info(sales)
         return sales
     
     if date["status"] == "success":
