@@ -189,8 +189,6 @@ resource "aws_iam_role_policy_attachment" "attach_read_policy_to_load_lambda" {
 }
 
 
-## need to add permission to write to data warehouse, once details known ##
-
 
 # data "aws_iam_policy_document" "load_lambda_cloudwatch" {
 #   statement {
@@ -217,4 +215,9 @@ resource "aws_iam_role_policy_attachment" "attach_read_policy_to_load_lambda" {
 resource "aws_iam_role_policy_attachment" "attach_lambda_access_secrets_to_load_lambda" {
   role       = aws_iam_role.load_lambda_role.name
   policy_arn = aws_iam_policy.lambda_access_secrets_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "attach_read_policy_to_load_lambda" {
+  role       = aws_iam_role.load_lambda_role.name
+  policy_arn = aws_iam_policy.read_policy_ingestion_zone.arn
 }

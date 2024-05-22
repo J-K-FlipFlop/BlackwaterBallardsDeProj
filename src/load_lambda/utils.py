@@ -29,7 +29,7 @@ insert data into warehouse
 
 def get_latest_processed_file_list(client: boto3.client) -> dict:
     bucket = "blackwater-processed-zone"
-    timestamp = "2024-05-20 12:10:03.998128"
+    timestamp = "2024-05-20 12:10:03.998128" # probably need to get this from processed bucket?
     try:
         output = client.list_objects_v2(Bucket=bucket)
         file_list = [
@@ -64,12 +64,46 @@ def insert_data_into_data_warehouse(
   data = get_data_from_processed_zone(client, pq_key)
   if data['status'] == 'success':
     try:
-        table_name = ''
-        conn = connect_to_db()
-        query = f"INSERT INTO {table_name} VALUES ()"
+        table_name = pq_key.split('/')[-1][:-8]
+        # conn = connect_to_db()
+        query = f"INSERT INTO {table_name} VALUES "
+        for i, row in data['data'].iterrows():
+           query += f"({row['currency_code']}, {row['currency_name']}), "
+        query = f"{query[:-2]};"
+        print(query)
+        # conn.run(query)
+        return {"status": "success",
+                "table_name": table_name,
+                "message": "Data successfully inserted into data warehouse"}
     except DatabaseError:
-        pass
-    finally:
-        conn.close()
+        return {"status": "failure",
+                "table_name": table_name,
+                "message": "Data was not added to data warehouse"}
+    # finally:
+        # conn.close()
   else:
       return data
+
+
+
+
+# df = pd.read_csv('test/data/TestGetFileContents.csv')
+# pq_df = pd.read_parquet('test.parquet')
+# print(pq_df)
+# for i, row in df.iterrows():
+#     print(f"{row['commercial_contact']}, {row['legal_address_id']}")
+# df_dict = pq_df.to_dict('split')
+# print(df_dict)
+# query = 'INSERT INTO'
+# for column in df_dict['columns']:
+#     query += f" {column},"
+# print(query)
+
+# dim_currency_dict = [{"currency_code": 'GBP',
+#                      "currency_name": 'Pound Sterling'},
+#                      {"currency_code": 'USD',
+#                      "currency_name": 'US Dollar'},]
+
+# df = pd.DataFrame(data=dim_currency_dict)
+# print(df)
+# df.to_parquet('currency.parquet', index=False)

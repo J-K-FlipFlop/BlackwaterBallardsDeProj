@@ -7,7 +7,9 @@ from moto import mock_aws
 from src.load_lambda.utils import (
     get_data_from_processed_zone,
     get_latest_processed_file_list,
+    insert_data_into_data_warehouse,
 )
+from src.load_lambda.connection import connect_to_db
 from pg8000.exceptions import DatabaseError
 
 
@@ -134,5 +136,29 @@ class TestGetProcessedData:
         assert len(result['data']) == 2
 
 class TestInsertDataIntoWarehouse:
-    def test_(self, s3_client):
-        pass
+    def test_table_name_extracted_correctly(self, s3_client):
+        bucket = 'blackwater-processed-zone'
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        timestamp = "2024-05-20 12:10:03.998128"
+        input_key = f"{timestamp}/currency.parquet"
+        filename = "currency.parquet"
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=input_key)
+        expected = 'currency'
+        result = insert_data_into_data_warehouse(s3_client, input_key)
+        assert result['table_name'] == expected
+
+    def test_data_is_successfully_written_to_data_warehouse(self, s3_client):
+        bucket = 'blackwater-processed-zone'
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        timestamp = "2024-05-20 12:10:03.998128"
+        input_key = f"{timestamp}/currency.parquet"
+        filename = "currency.parquet"
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=input_key)
+        result = insert_data_into_data_warehouse(s3_client, input_key)
+        assert result['status'] == 'success'
