@@ -279,10 +279,7 @@ def create_dim_date(df_sales):
                          df_agreed_del_date,
                          df_last_updated])
     
-    print(df_dates)
-    # print(sales_dict)
     dim_dates = df_dates.to_dict()
-    # print(dates_dict["dates"])
     dates_dict = dim_dates["dates"]
     dim_dates["year"] = {}
     dim_dates["month"] = {}
