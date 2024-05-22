@@ -1,6 +1,7 @@
 import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime
+import pandas as pd
 import awswrangler as wr
 from awswrangler.exceptions import NoFilesFound
 
@@ -9,7 +10,7 @@ from awswrangler.exceptions import NoFilesFound
 # find most recent folder
 # read list of files in folder
 # return dictionary containing the list
-def read_latest_changes(client):
+def read_latest_changes(client: boto3.client) -> dict:
     """Gets a list of most recently updated keys from S3 ingestion bucket
 
     Args:
@@ -47,7 +48,27 @@ def read_latest_changes(client):
         }
 
 
-def get_data_from_ingestion_bucket(key, session):
+# loop through table list
+# read data from s3 bucket for each file
+# return data in some format
+
+
+def get_data_from_ingestion_bucket(
+    key: str, session: boto3.session.Session
+) -> dict:
+    """Downloads csv data from S3 ingestion bucket and returns a pandas dataframe
+
+    Args:
+        key: string representing S3 object to be downloaded
+        session: Boto3 session
+
+    Returns:
+        A dictionary containing the following:
+            status: shows whether the function ran successfully
+            data: a pandas dataframe containing downloaded data (if successful)
+            message: a relevant error message (if unsuccessful)
+    """
+
     try:
         df = wr.s3.read_csv(
             path=f"s3://blackwater-ingestion-zone/{key}", boto3_session=session
@@ -60,13 +81,61 @@ def get_data_from_ingestion_bucket(key, session):
         return {"status": "failure", "message": nff}
 
 
-# loop through table list
-# read data from s3 bucket for each file
-# return data in some format
-
-
 # transformation happens here
 
 
 # convert to parquet
 # write to s3 processed bucket
+def write_parquet_data_to_s3(
+    data: pd.DataFrame,
+    table_name: str,
+    session: boto3.session.Session,
+    timestamp=None,
+) -> dict:
+    """Writes a pandas dataframe to S3 processed bucket in parquet format
+
+    Args:
+        data: a pandas dataframe
+        table_name: name of table to be written
+        session: Boto3 session
+        timestamp: optional, passed into function so all files transformed by function are stored in same S3 folder
+
+    Returns:
+        A dictionary containing the following:
+            status: shows whether the function ran successfully
+            message: a relevant success/failure message
+    """
+    if isinstance(data, pd.DataFrame):
+        try:
+            wr.s3.to_parquet(
+                df=data,
+                path=f"s3://blackwater-processed-zone/{timestamp}/{table_name}.parquet",
+                boto3_session=session,
+            )
+            return {
+                "status": "success",
+                "message": f"{table_name} written to processed bucket",
+            }
+        except ClientError as e:
+            return {
+                "status": "failure",
+                "message": e.response,
+            }
+    else:
+        return {
+            "status": "failure",
+            "message": f"Data is in wrong format {str(type(data))} is not a pandas dataframe",
+        }
+
+
+# wr.s3.read_parquet creates a dataframe
+# df.to_dict(orient='split', index=False) returns data in similar way to pg8000
+# dict with columns and data as list of lists
+"""
+{'columns': ['counterparty_id', 'counterparty_legal_name', 'legal_address_id', 'commercial_contact', 'delivery_contact', 'created_at', 'last_updated'], 
+'data': [[1, 'Fahey and Sons', 15, 'Micheal Toy', 'Mrs. Lucy Runolfsdottir', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563'], 
+[2, 'Leannon, Predovic and Morar', 28, 'Melba Sanford', 'Jean Hane III', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563'], 
+[3, 'Armstrong Inc', 2, 'Jane Wiza', 'Myra Kovacek', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563'], 
+[4, 'Kohler Inc', 29, 'Taylor Haag', 'Alfredo Cassin II', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563'], 
+[5, 'Frami, Yundt and Macejkovic', 22, 'Homer Mitchell', 'Ivan Balistreri', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563']]}
+"""
