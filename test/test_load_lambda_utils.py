@@ -30,14 +30,15 @@ class TestGetLatestProcessedFileList:
     def test_function_returns_failure_message_if_bucket_does_not_exist(
         self, s3_client
     ):
-        result = get_latest_processed_file_list(s3_client)
+        timestamp = "2024-05-20 12:10:03.998128"
+        result = get_latest_processed_file_list(s3_client, timestamp)
         assert result["status"] == "failure"
 
     def test_function_returns_success_message_when_bucket_exists(
         self, s3_client
     ):
-        bucket = "blackwater-processed-zone"
         timestamp = "2024-05-20 12:10:03.998128"
+        bucket = "blackwater-processed-zone"
         filename = "test/data/dummy_csv.csv"
         key = f"{timestamp}/staff.csv"
         s3_client.create_bucket(
@@ -45,7 +46,7 @@ class TestGetLatestProcessedFileList:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
-        result = get_latest_processed_file_list(s3_client)
+        result = get_latest_processed_file_list(s3_client, timestamp)
         assert result["status"] == "success"
 
     def test_function_returns_list_of_recent_files(self, s3_client):
@@ -58,7 +59,7 @@ class TestGetLatestProcessedFileList:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
-        result = get_latest_processed_file_list(s3_client)
+        result = get_latest_processed_file_list(s3_client, timestamp)
         assert result["file_list"] == [
             "2024-05-20 12:10:03.998128/staff.parquet"
         ]
@@ -78,7 +79,7 @@ class TestGetLatestProcessedFileList:
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key2)
-        result = get_latest_processed_file_list(s3_client)
+        result = get_latest_processed_file_list(s3_client, timestamp)
         assert result["file_list"] == [
             "2024-05-20 12:10:03.998128/staff.parquet"
         ]
@@ -97,7 +98,7 @@ class TestGetLatestProcessedFileList:
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key2)
-        result = get_latest_processed_file_list(s3_client)
+        result = get_latest_processed_file_list(s3_client, timestamp)
         assert result["file_list"] == [
             "2024-05-20 12:10:03.998128/sales_order.parquet",
             "2024-05-20 12:10:03.998128/staff.parquet",

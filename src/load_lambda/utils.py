@@ -26,13 +26,29 @@ insert data into warehouse
     functionality
 """
 
-def get_latest_processed_file_list(client: boto3.client) -> dict:
+def sql_security(table):
+    conn = connect_to_db()
+    table_names_unfiltered = conn.run(
+        "SELECT TABLE_NAME FROM totesys.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
+    )
+    regex = re.compile("(^pg_)|(^sql_)|(^_)")
+    table_names_filtered = [
+        item[0] for item in table_names_unfiltered if not regex.search(item[0])
+    ]
+    if table in table_names_filtered:
+        return table
+    else:
+        raise DatabaseError(
+            "Table not found - do not start a table name with pg_, sql_ or _"
+        )
+
+def get_latest_processed_file_list(client: boto3.client, timestamp_filtered: str = None) -> dict:
     bucket = "blackwater-processed-zone"
     runtime_key = f"last_ran_at.csv"
-    get_previous_runtime = client.get_object(Bucket='blackwater-ingestion-zone', Key=runtime_key)
-    timestamp = get_previous_runtime["Body"].read().decode("utf-8")
-    timestamp_filtered = timestamp[12:-2]
-    #pp(timestamp_filtered)
+    if not timestamp_filtered:
+        get_previous_runtime = client.get_object(Bucket='blackwater-ingestion-zone', Key=runtime_key)
+        timestamp = get_previous_runtime["Body"].read().decode("utf-8")
+        timestamp_filtered = timestamp[12:-2]
     try:
         output = client.list_objects_v2(Bucket=bucket)
         file_list = [
@@ -68,6 +84,7 @@ def insert_data_into_data_warehouse(
   if data['status'] == 'success':
     try:
         table_name = pq_key.split('/')[-1][:-8]
+        table_name = sql_security(table_name)
         # conn = connect_to_db()
         query = f"INSERT INTO {table_name} VALUES "
         for i, row in data['data'].iterrows():
