@@ -21,7 +21,7 @@ resource "aws_s3_bucket" "tf_processed_zone" {
 resource "aws_s3_bucket_notification" "processed_trigger" {
   bucket = "blackwater-processed-zone"
   lambda_function {
-    lambda_function_arn = "load-lambda-arn-to-be-added" # add in post
+    lambda_function_arn = aws_lambda_function.load_lambda.arn
     events = ["s3:ObjectCreated:*"]
     filter_prefix = "last_ran_at"
     filter_suffix = ".csv"
