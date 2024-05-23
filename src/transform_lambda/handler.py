@@ -39,6 +39,7 @@ def lambda_handler(event, context, session=None, client=None):
         print(resp)
         logging.info(resp)
     else:
+        print("currency not written")
         logging.info(curr)
     
     if cp["status"] == "success":
@@ -47,6 +48,7 @@ def lambda_handler(event, context, session=None, client=None):
         print(resp)
         logging.info(resp)
     else:
+        print("counterparty not written")
         logging.info(cp)
     
     if des["status"] == "success":
@@ -55,6 +57,7 @@ def lambda_handler(event, context, session=None, client=None):
         print(resp)
         logging.info(resp)
     else:
+        print("design not written")
         logging.info(des)
     
     if loc["status"] == "success":
@@ -63,6 +66,7 @@ def lambda_handler(event, context, session=None, client=None):
         print(resp)
         logging.info(resp)
     else:
+        print("location not written")
         logging.info(loc)
     
     if stf["status"] == "success":
@@ -71,6 +75,7 @@ def lambda_handler(event, context, session=None, client=None):
         print(resp)
         logging.info(resp)
     else:
+        print("staff not written")
         logging.info(stf)
     
     if sales["status"] == "success":
@@ -79,6 +84,7 @@ def lambda_handler(event, context, session=None, client=None):
         print(resp)
         logging.info(resp)
     else:
+        print("sales not written")
         logging.info(sales)
         return sales
     
@@ -88,6 +94,7 @@ def lambda_handler(event, context, session=None, client=None):
         print(resp)
         logging.info(resp)
     else:
+        print("date not written")
         logging.info(date)
     
     message = f"Updated {counter} tables"

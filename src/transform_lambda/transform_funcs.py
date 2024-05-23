@@ -12,6 +12,7 @@ def convert_design(client, session):
     if response1["status"] == "success":
         key = response1["timestamp"]
     else:
+        print("file not found")
         return response1
     
     filename = "design.csv"
@@ -31,6 +32,7 @@ def convert_currency(client, session):
     if response1["status"] == "success":
         key = response1["timestamp"]
     else:
+        print("file not found")
         return response1
     
     filename = "currency.csv"
@@ -67,11 +69,17 @@ def convert_staff(client, session):
     if response1["status"] == "success":
         key = response1["timestamp"]
     else:
+        print("file not found")
         return response1
     
     filename1 = "staff.csv"
     filename2 = "department.csv"
+
+    
     response_staff = get_data_from_ingestion_bucket(key, filename1, session)
+
+    # if filename2 not in response1["file_list"]:
+    #     update = False
     response_department = get_data_from_ingestion_bucket(key, filename2, session, update=False)
 
     if response_staff["status"] == "success":
@@ -144,10 +152,13 @@ def convert_counterparty(client, session):
     if response1["status"] == "success":
         key = response1["timestamp"]
     else:
+        print("file not found")
         return response1
     filename_address = "address.csv"
     filename_counter = "counterparty.csv"
-    response_address = get_data_from_ingestion_bucket(key, filename_address, session)
+
+    
+    response_address = get_data_from_ingestion_bucket(key, filename_address, session, update=False)
     response_counter = get_data_from_ingestion_bucket(key, filename_counter, session)
 
     if response_counter["status"] == "success":
@@ -213,6 +224,7 @@ def convert_sales_order(client, session):
     if response1["status"] == "success":
         key = response1["timestamp"]
     else:
+        print("file not found")
         return response1
     filename_sales = 'sales_order.csv'
     response_sales = get_data_from_ingestion_bucket(key, filename_sales, session)

@@ -29,15 +29,32 @@ def read_latest_changes(client: boto3.client) -> dict:
             key=lambda k: k["Key"],
             reverse=True,
         )
-        latest_file_name = file_data[0]["Key"]
-        timestamp = latest_file_name.split("/")[1]
+        # latest_file_name = file_data[0]["Key"]
+        # timestamp = latest_file_name.split("/")[1]
         # print(timestamp)
-        file_list = [
-            file["Key"] for file in file_data if timestamp in file["Key"]
-        ]
+        # print(file_data)
+        runtime_key = "last_ran_at.csv"
+        get_previous_runtime = client.get_object(Bucket='blackwater-ingestion-zone', Key=runtime_key)
+        timestamp = get_previous_runtime["Body"].read().decode("utf-8")
+        # print(timestamp)
+        timestamp_filtered = timestamp.split("\n")[1]
+        # print(timestamp_filtered)
+
+        year = int(timestamp_filtered[0:4])
+
+        if year < 2000:
+            file_list = [
+                file["Key"] for file in file_data if "original_data_dump" in file["Key"]
+            ]
+            timestamp_filtered ="original_data_dump"
+        else:
+            file_list = [
+                file["Key"] for file in file_data if timestamp_filtered in file["Key"]
+            ]
+
         return {
             "status": "success",
-            "timestamp": timestamp,
+            "timestamp": timestamp_filtered,
             "file_list": file_list,
         }
     except ClientError:
@@ -45,6 +62,7 @@ def read_latest_changes(client: boto3.client) -> dict:
             "status": "failure",
             "timestamp": "",
             "table_list": [],
+            "message" : "client error: returning empty table list"
         }
 
 
@@ -70,9 +88,9 @@ def get_data_from_ingestion_bucket(
             message: a relevant error message (if unsuccessful)
     """
     if update:
-        path=f"s3://blackwater-ingestion-zone/update_test/{key}/{filename}"
+        path=f"s3://blackwater-ingestion-zone/ingested_data/{key}/{filename}"
     else:
-        path=f"s3://bucket-for-my-emotions/playground/{filename}"
+        path=f"s3://blackwater-ingestion-zone/ingested_data/original_data_dump/{filename}"
     try:
         df = wr.s3.read_csv(
             path=path, boto3_session=session
@@ -143,3 +161,5 @@ def write_parquet_data_to_s3(
 [4, 'Kohler Inc', 29, 'Taylor Haag', 'Alfredo Cassin II', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563'], 
 [5, 'Frami, Yundt and Macejkovic', 22, 'Homer Mitchell', 'Ivan Balistreri', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563']]}
 """
+client = boto3.client("s3")
+read_latest_changes(client)
