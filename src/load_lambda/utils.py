@@ -29,7 +29,7 @@ insert data into warehouse
 def sql_security(table):
     conn = connect_to_db()
     table_names_unfiltered = conn.run(
-        "SELECT TABLE_NAME FROM totesys.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
+        "SELECT TABLE_NAME FROM postgres.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
     )
     regex = re.compile("(^pg_)|(^sql_)|(^_)")
     table_names_filtered = [
