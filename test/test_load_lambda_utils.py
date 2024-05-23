@@ -158,7 +158,7 @@ class TestInsertDataIntoWarehouse:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         timestamp = "2024-05-20 12:10:03.998128"
-        input_key = f"{timestamp}/currency.parquet"
+        input_key = f"{timestamp}/dim_currency.parquet"
         filename = "currency.parquet"
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=input_key)
         result = insert_data_into_data_warehouse(s3_client, input_key)

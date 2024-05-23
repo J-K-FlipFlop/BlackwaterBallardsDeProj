@@ -29,7 +29,7 @@ insert data into warehouse
 def sql_security(table):
     conn = connect_to_db()
     table_names_unfiltered = conn.run(
-        "SELECT TABLE_NAME FROM totesys.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
+        "SELECT TABLE_NAME FROM postgres.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
     )
     regex = re.compile("(^pg_)|(^sql_)|(^_)")
     table_names_filtered = [
@@ -85,7 +85,7 @@ def insert_data_into_data_warehouse(
     try:
         table_name = pq_key.split('/')[-1][:-8]
         table_name = sql_security(table_name)
-        # conn = connect_to_db()
+        conn = connect_to_db()
         query = f"INSERT INTO {table_name} VALUES "
         for i, row in data['data'].iterrows():
            query += f"({row['currency_code']}, {row['currency_name']}), "
@@ -94,7 +94,8 @@ def insert_data_into_data_warehouse(
         return {"status": "success",
                 "table_name": table_name,
                 "message": "Data successfully inserted into data warehouse"}
-    except DatabaseError:
+    except DatabaseError as e:
+        print(e)
         return {"status": "failure",
                 "table_name": table_name,
                 "message": "Data was not added to data warehouse"}
