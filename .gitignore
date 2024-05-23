@@ -1,6 +1,6 @@
 **/serverless-output.*
 **/.DS_Store
-temp/
+temp*/
 .DS_Store
 serverless-output.yaml
 **/results.xml

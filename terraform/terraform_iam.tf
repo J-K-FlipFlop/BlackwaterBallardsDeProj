@@ -183,38 +183,41 @@ resource "aws_iam_policy" "read_policy_processed_zone" {
   policy = data.aws_iam_policy_document.read_from_processed_zone.json
 }
 
-resource "aws_iam_role_policy_attachment" "attach_read_policy_to_load_lambda" {
+resource "aws_iam_role_policy_attachment" "attach_read_processed_zone_policy_to_load_lambda" {
   role       = aws_iam_role.load_lambda_role.name
   policy_arn = aws_iam_policy.read_policy_ingestion_zone.arn
 }
 
 
-## need to add permission to write to data warehouse, once details known ##
 
+data "aws_iam_policy_document" "load_lambda_cloudwatch" {
+  statement {
+    actions   = ["logs:CreateLogGroup"]
+    resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"]
+  }
+  statement {
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.load_lambda.function_name}:*"]
+  }
+}
 
-# data "aws_iam_policy_document" "load_lambda_cloudwatch" {
-#   statement {
-#     actions   = ["logs:CreateLogGroup"]
-#     resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"]
-#   }
-#   statement {
-#     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
-#     resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.load_lambda.function_name}:*"]
-#   }
-# }
+resource "aws_iam_policy" "cloudwatch_policy_load_lambda" {
+  name   = "cloudwatch-policy-load-lambda"
+  policy = data.aws_iam_policy_document.load_lambda_cloudwatch.json
+}
 
-# resource "aws_iam_policy" "cloudwatch_policy_load_lambda" {
-#   name   = "cloudwatch-policy-load-lambda"
-#   policy = data.aws_iam_policy_document.load_lambda_cloudwatch.json
-# }
-
-# resource "aws_iam_role_policy_attachment" "attach_cloudwatch_to_load_lambda" {
-#   role       = aws_iam_role.load_lambda_role.name
-#   policy_arn = aws_iam_policy.cloudwatch_policy_load_lambda.arn
-# }
+resource "aws_iam_role_policy_attachment" "attach_cloudwatch_to_load_lambda" {
+  role       = aws_iam_role.load_lambda_role.name
+  policy_arn = aws_iam_policy.cloudwatch_policy_load_lambda.arn
+}
 
 
 resource "aws_iam_role_policy_attachment" "attach_lambda_access_secrets_to_load_lambda" {
   role       = aws_iam_role.load_lambda_role.name
   policy_arn = aws_iam_policy.lambda_access_secrets_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "attach_read_ingestion_zone_policy_to_load_lambda" {
+  role       = aws_iam_role.load_lambda_role.name
+  policy_arn = aws_iam_policy.read_policy_ingestion_zone.arn
 }
