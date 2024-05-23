@@ -95,10 +95,12 @@ def update_data_in_bucket(table: str, bucket, session, time_of_day):
             new_items.append(item)
 
     data = new_items
-    key = f"update_test/{time_of_day}/{table}.csv"
+    if previous_lambda_runtime < datetime(2000, 1, 1, 1, 1):
+        key = f"ingested_data/original_data_dump/{table}.csv"
+    else:
+        key = f"ingested_data/{time_of_day}/{table}.csv"
     if new_items:
         response = write_csv_to_s3(session=session, data=data, bucket=bucket, key=key)
-               
     else:
         response = {"success": False, "message": 'no new data'}
 
