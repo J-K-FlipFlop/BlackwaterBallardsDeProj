@@ -94,8 +94,7 @@ def insert_data_into_data_warehouse(
         return {"status": "success",
                 "table_name": table_name,
                 "message": "Data successfully inserted into data warehouse"}
-    except DatabaseError as e:
-        print(e)
+    except DatabaseError:
         return {"status": "failure",
                 "table_name": table_name,
                 "message": "Data was not added to data warehouse"}
