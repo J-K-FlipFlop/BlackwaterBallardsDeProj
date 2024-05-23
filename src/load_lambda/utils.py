@@ -85,7 +85,7 @@ def insert_data_into_data_warehouse(
     try:
         table_name = pq_key.split('/')[-1][:-8]
         table_name = sql_security(table_name)
-        conn = connect_to_db()
+        # conn = connect_to_db()
         query = f"INSERT INTO {table_name} VALUES "
         for i, row in data['data'].iterrows():
            query += f"({row['currency_code']}, {row['currency_name']}), "
