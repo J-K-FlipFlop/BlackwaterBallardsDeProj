@@ -22,9 +22,9 @@ class TestConvertStaff:
     def test_convert_staff_rtns_df_type_removes_drop_cols_and_adds_dept_cols(self, s3_client, file_name1="staff", file_name2="department"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename1 = f"test/data/{file_name1}.csv"
-        key1 = f"update_test/{timestamp}/{file_name1}.csv"
+        key1 = f"ingested_data/{timestamp}/{file_name1}.csv"
         filename2 = f"test/data/{file_name2}.csv"
-        key2 = f"update_test/{timestamp}/{file_name2}.csv"
+        key2 = f"ingested_data/original_data_dump/{file_name2}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -35,8 +35,12 @@ class TestConvertStaff:
         )
         s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         
         result = convert_staff(s3_client, session)
+        # assert result["message"] == "marge"
         assert result["status"] == "success"
         assert isinstance(result["data"], pd.DataFrame)
         column_names = ['staff_id', 'first_name', 'last_name', 'department_name', 'location', 'email_address']
@@ -47,12 +51,12 @@ class TestConvertStaff:
             assert column not in result["data"].columns
             assert len(result["data"].columns) == len(column_names)
 
-    def test_convert_staff_rtns_correct_data_in_df(self, s3_client, file_name1="staff", file_name2="department"):
+    def test_convert_staff_rtns_expected_data_from_dataframe(self, s3_client, file_name1="staff", file_name2="department"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename1 = f"test/data/{file_name1}.csv"
-        key1 = f"update_test/{timestamp}/{file_name1}.csv"
+        key1 = f"ingested_data/{timestamp}/{file_name1}.csv"
         filename2 = f"test/data/{file_name2}.csv"
-        key2 = f"update_test/{timestamp}/{file_name2}.csv"
+        key2 = f"ingested_data/original_data_dump/{file_name2}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -62,6 +66,9 @@ class TestConvertStaff:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         
         result = convert_staff(s3_client, session)
@@ -76,8 +83,8 @@ class TestConvertStaff:
         timestamp = "2024-05-20 12:10:03.998128"
         filename1 = f"test/data/{file_name1}.csv"
         filename2 = f"test/data/{file_name2}.csv"
-        key1 = f"update_test/{timestamp}/{filename1}.csv"
-        key2 = f"update_test/{timestamp}/{filename2}.csv"
+        key1 = f"ingested_data/{timestamp}/{filename1}.csv"
+        key2 = f"ingested_data/{timestamp}/{filename2}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -88,9 +95,12 @@ class TestConvertStaff:
         )
         s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = convert_staff(s3_client, session)
         assert result['status'] == "failure"
-        assert str(result['message']) == f"No files Found on: s3://{bucket}/update_test/{timestamp}/staff.csv."
+        assert str(result['message']) == f"No files Found on: s3://{bucket}/ingested_data/{timestamp}/staff.csv."
 
     def test_convert_staff_without_req_bucket_returns_expected_error(self, s3_client, file_name1="staff", file_name2="department"):
         timestamp = "2024-05-20 12:10:03.998128"
@@ -112,3 +122,7 @@ class TestConvertStaff:
         #error message on utils line 43-47 need improvement?
         assert result['status'] == "failure"
         assert result['timestamp'] == ""
+        
+        
+        
+    

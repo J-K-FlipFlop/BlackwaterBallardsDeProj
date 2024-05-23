@@ -22,7 +22,7 @@ class TestConvertDates:
     def test_create_dim_date_rtns_df_type_removes_drop_cols_and_adds_sales_cols(self, s3_client, file_name="sales_order"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
-        key = f"update_test/{timestamp}/{file_name}.csv"
+        key = f"ingested_data/{timestamp}/{file_name}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -32,20 +32,23 @@ class TestConvertDates:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         
         result = convert_sales_order(s3_client, session)
         date_result = create_dim_date(result['data'])
-        assert date_result["status"] == "success"
-        assert isinstance(date_result["data"], pd.DataFrame)
+        assert result["status"] == "success"
+        assert isinstance(result["data"], pd.DataFrame)
         column_names = ['dates', 'year', 'month', 'day', 'day_of_week', 'day_name', 'month_name', 'quarter']
         for column in column_names:
             assert column in date_result["data"].columns
             assert len(date_result["data"].columns) == len(column_names)
 
-    def test_create_dim_date_rtns_correct_data_in_df(self, s3_client, file_name="sales_order"):
+    def test_create_dim_date_rtns_expected_data_from_dataframe(self, s3_client, file_name="sales_order"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
-        key = f"update_test/{timestamp}/{file_name}.csv"
+        key = f"ingested_data/{timestamp}/{file_name}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -55,6 +58,9 @@ class TestConvertDates:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         
         result = convert_sales_order(s3_client, session)
         date_result = create_dim_date(result['data'])
@@ -70,7 +76,7 @@ class TestConvertDates:
     def test_create_dim_date_without_req_file_returns_expected_error(self, s3_client, file_name="counterparty"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
-        key = f"update_test/{timestamp}/{filename}.csv"
+        key = f"ingested_data/{timestamp}/{filename}.csv"
         bucket = "blackwater-infestation-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -79,6 +85,9 @@ class TestConvertDates:
             Bucket=bucket,
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         result = convert_sales_order(s3_client, session)
         #returns key error because of missing dependency of convert sales order pre-requisite (no data in result)
@@ -86,7 +95,7 @@ class TestConvertDates:
             create_dim_date(result['data'])
             e.response == 'data'
     
-    def test_convert_sales_order_without_req_bucket_returns_expected_error(self, s3_client, file_name="sales_order"):
+    def test_create_dim_date_without_req_bucket_returns_expected_error(self, s3_client, file_name="sales_order"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
         key = f"update_test/{timestamp}/{filename}.csv"
@@ -104,3 +113,6 @@ class TestConvertDates:
         with pytest.raises(KeyError) as e:
             create_dim_date(result['data'])
             e.response == 'data'
+        
+
+    

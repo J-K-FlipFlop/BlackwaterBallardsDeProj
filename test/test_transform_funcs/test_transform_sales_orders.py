@@ -18,11 +18,11 @@ def s3_client(aws_creds):
         yield boto3.client("s3")
        
 
-class TestConvertSalesOrders:
+class TestConvertSales:
     def test_convert_salesorder_rtns_df_type_removes_drop_cols_and_adds_time_and_date_col(self, s3_client, file_name="sales_order"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
-        key = f"update_test/{timestamp}/{file_name}.csv"
+        key = f"ingested_data/{timestamp}/{file_name}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -32,6 +32,9 @@ class TestConvertSalesOrders:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         
         result = convert_sales_order(s3_client, session)
         assert result["status"] == "success"
@@ -44,10 +47,10 @@ class TestConvertSalesOrders:
             assert column not in result["data"].columns
             assert len(result["data"].columns) == len(column_names)
 
-    def test_convert_salesorder_rtns_correct_data_in_df(self, s3_client, file_name="sales_order"):
+    def test_convert_salesorder_rtns_expected_data_from_dataframe(self, s3_client, file_name="sales_order"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
-        key = f"update_test/{timestamp}/{file_name}.csv"
+        key = f"ingested_data/{timestamp}/{file_name}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -57,9 +60,11 @@ class TestConvertSalesOrders:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         
         result = convert_sales_order(s3_client, session)
-
         assert list(result['data']['sales_order_id'][0:10]) == [2, 3, 4, 5, 6, 7, 8, 10, 11, 12]
         assert list(result['data']['created_date'][0:10]) == ['2022-11-03', '2022-11-03', '2022-11-03', '2022-11-03', '2022-11-04', '2022-11-04', '2022-11-04', '2022-11-07', '2022-11-07', '2022-11-09']
         assert list(result['data']['created_time'][0:10]) == ['14:20:52.186', '14:20:52.188', '14:20:52.188', '14:20:52.186', '11:37:10.341', '12:57:09.926', '13:45:10.306', '09:07:10.485', '15:53:10.153', '10:20:09.912']
@@ -78,7 +83,7 @@ class TestConvertSalesOrders:
     def test_convert_sales_order_without_req_file_returns_expected_error(self, s3_client, file_name="address"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
-        key = f"update_test/{timestamp}/{filename}.csv"
+        key = f"ingested_data/{timestamp}/{filename}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -88,9 +93,12 @@ class TestConvertSalesOrders:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = convert_sales_order(s3_client, session)
         assert result['status'] == "failure"
-        assert str(result['message']) == f"No files Found on: s3://{bucket}/update_test/{timestamp}/sales_order.csv."
+        assert str(result['message']) == f"No files Found on: s3://{bucket}/ingested_data/{timestamp}/sales_order.csv."
 
     def test_convert_sales_order_without_req_bucket_returns_expected_error(self, s3_client, file_name="sales_order"):
         timestamp = "2024-05-20 12:10:03.998128"
@@ -109,3 +117,7 @@ class TestConvertSalesOrders:
         #error message on utils line 43-47 need improvement?
         assert result['status'] == "failure"
         assert result['timestamp'] == ""
+        
+
+
+        

@@ -21,7 +21,7 @@ class TestConvertDesign:
     def test_convert_design_rtns_df_type_and_removes_drop_cols(self, s3_client, file_name="design"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
-        key = f"update_test/{timestamp}/{file_name}.csv"
+        key = f"ingested_data/{timestamp}/{file_name}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -31,8 +31,11 @@ class TestConvertDesign:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
-        
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = convert_design(s3_client, session)
+        # assert result["message"] == "no"
         assert result["status"] == "success"
         assert isinstance(result["data"], pd.DataFrame)
         column_names = ['design_id', 'design_name', 'file_location', 'file_name']
@@ -43,10 +46,10 @@ class TestConvertDesign:
             assert column not in result["data"].columns
             assert len(result["data"].columns) == len(column_names)
 
-    def test_convert_design_rtns_correct_data_in_df(self, s3_client, file_name="design"):
+    def test_convert_design_rtns_expected_data_from_dataframe(self, s3_client, file_name="design"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = f"test/data/{file_name}.csv"
-        key = f"update_test/{timestamp}/{file_name}.csv"
+        key = f"ingested_data/{timestamp}/{file_name}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -56,9 +59,10 @@ class TestConvertDesign:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
-        
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = convert_design(s3_client, session)
-        print(result['data'])
         assert list(result['data']['design_id'][0:10]) == [8, 51, 50, 69, 16, 54, 55, 10, 57, 41]
         assert list(result['data']['design_name'][0:10]) == ['Wooden', 'Bronze', 'Granite', 'Bronze', 'Soft', 'Plastic', 'Concrete', 'Soft', 'Cotton', 'Granite']
         assert list(result['data']['file_location'][0:10]) == ['/usr', '/private', '/private/var', '/lost+found', '/System', '/usr/ports', '/opt/include', '/usr/share', '/etc/periodic', '/usr/X11R6']
@@ -77,9 +81,12 @@ class TestConvertDesign:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = convert_design(s3_client, session)
         assert result['status'] == "failure"
-        assert str(result['message']) == f"No files Found on: s3://{bucket}/update_test/{timestamp}/design.csv."
+        assert str(result['message']) == f"No files Found on: s3://{bucket}/ingested_data/{timestamp}/design.csv."
 
     def test_convert_design_without_req_bucket_returns_expected_error(self, s3_client, file_name="design"):
         timestamp = "2024-05-20 12:10:03.998128"
@@ -99,3 +106,7 @@ class TestConvertDesign:
         assert result['status'] == "failure"
         assert result['timestamp'] == ""
        
+        result = convert_design(s3_client, session)
+    
+        
+    

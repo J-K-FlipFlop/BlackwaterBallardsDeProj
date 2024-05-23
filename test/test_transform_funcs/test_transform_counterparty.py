@@ -23,9 +23,9 @@ class TestConvertCounterParty:
     def test_convert_counter_rtns_df_type_removes_drop_cols_and_adds_loc_cols(self, s3_client, file_name1="address", file_name2="counterparty"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename1 = f"test/data/{file_name1}.csv"
-        key1 = f"update_test/{timestamp}/{file_name1}.csv"
+        key1 = f"ingested_data/original_data_dump/{file_name1}.csv"
         filename2 = f"test/data/{file_name2}.csv"
-        key2 = f"update_test/{timestamp}/{file_name2}.csv"
+        key2 = f"ingested_data/{timestamp}/{file_name2}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -35,6 +35,9 @@ class TestConvertCounterParty:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         
         result = convert_counterparty(s3_client, session)
@@ -48,12 +51,12 @@ class TestConvertCounterParty:
             assert column not in result["data"].columns
             assert len(result["data"].columns) == len(column_names)
 
-    def test_convert_counter_rtns_correct_data_in_df(self, s3_client, file_name1="address", file_name2="counterparty"):
+    def test_convert_counter_rtns_expected_data_from_dataframe(self, s3_client, file_name1="address", file_name2="counterparty"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename1 = f"test/data/{file_name1}.csv"
-        key1 = f"update_test/{timestamp}/{file_name1}.csv"
+        key1 = f"ingested_data/original_data_dump/{file_name1}.csv"
         filename2 = f"test/data/{file_name2}.csv"
-        key2 = f"update_test/{timestamp}/{file_name2}.csv"
+        key2 = f"ingested_data/{timestamp}/{file_name2}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -64,9 +67,11 @@ class TestConvertCounterParty:
         )
         s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         
         result = convert_counterparty(s3_client, session)
-
         assert list(result['data']['counterparty_id'][0:10]) == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         assert list(result['data']['counterparty_legal_name'][0:10]) == ['Fahey and Sons', 'Leannon, Predovic and Morar', 'Armstrong Inc', 'Kohler Inc', 'Frami, Yundt and Macejkovic', 'Mraz LLC', 'Padberg, Lueilwitz and Johnson', 'Grant - Lakin', 'Price LLC', 'Bosco - Grant']
         assert list(result['data']['counterparty_legal_address_line_1'][0:10]) == ['605 Haskell Trafficway', '079 Horacio Landing', '179 Alexie Cliffs', '37736 Heathcote Lock', '364 Goodwin Streets', '822 Providenci Spring', '511 Orin Extension', '511 Orin Extension', '34177 Upton Track', '49967 Kaylah Flat']
@@ -81,8 +86,8 @@ class TestConvertCounterParty:
         timestamp = "2024-05-20 12:10:03.998128"
         filename1 = f"test/data/{file_name1}.csv"
         filename2 = f"test/data/{file_name2}.csv"
-        key1 = f"update_test/{timestamp}/{filename1}.csv"
-        key2 = f"update_test/{timestamp}/{filename2}.csv"
+        key1 = f"ingested_data/original_data_dump/{filename1}.csv"
+        key2 = f"ingested_data/{timestamp}/{filename2}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -93,9 +98,12 @@ class TestConvertCounterParty:
         )
         s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = convert_counterparty(s3_client, session)
         assert result['status'] == "failure"
-        assert str(result['message']) == f"No files Found on: s3://{bucket}/update_test/{timestamp}/counterparty.csv."
+        assert str(result['message']) == f"No files Found on: s3://{bucket}/ingested_data/{timestamp}/counterparty.csv."
 
     def test_convert_counterparty_without_req_bucket_returns_expected_error(self, s3_client, file_name1="address", file_name2="counterparty"):
         timestamp = "2024-05-20 12:10:03.998128"
@@ -118,3 +126,5 @@ class TestConvertCounterParty:
         assert result['status'] == "failure"
         assert result['timestamp'] == ""
 
+        
+    
