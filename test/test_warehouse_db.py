@@ -13,13 +13,16 @@ load_dotenv()
 psql_user = os.getenv("psql_username")
 psql_password = os.getenv("psql_password")
 
-
-def root_warehouse_db(table_name:str, data) -> list:
+#table_name:str, data
+def root_warehouse_db() -> Connection:
     conn = Connection(user=psql_user, password=psql_password, port=5432, host="localhost")
     conn.run("DROP DATABASE IF EXISTS postgres;")
     conn.run("CREATE DATABASE postgres;")
     conn = Connection(user=psql_user, password=psql_password, database="postgres", port=5432, host="localhost")
-    conn.run("""CREATE TABLE
+    return conn
+
+def seed_warehouse_db(table_name:str, data, connection:Connection):
+    connection.run("""CREATE TABLE
         dim_date(
             date_id DATE PRIMARY KEY NOT NULL,
             year INT NOT NULL,
@@ -29,7 +32,7 @@ def root_warehouse_db(table_name:str, data) -> list:
             month_name VARCHAR NOT NULL,
             quarter INT NOT NULL
             );""")
-    conn.run("""CREATE TABLE
+    connection.run("""CREATE TABLE
         dim_staff(
             staff_id INT PRIMARY KEY NOT NULL,
             first_name VARCHAR NOT NULL,
@@ -38,20 +41,20 @@ def root_warehouse_db(table_name:str, data) -> list:
             location VARCHAR NOT NULL,
             email_address VARCHAR NOT NULL
             );""")
-    conn.run("""CREATE TABLE
+    connection.run("""CREATE TABLE
         dim_currency(
             currency_id INT PRIMARY KEY NOT NULL,
             currency_code VARCHAR NOT NULL,
             currency_name VARCHAR NOT NULL
             );""")
-    conn.run("""CREATE TABLE
+    connection.run("""CREATE TABLE
         dim_design(
             design_id INT PRIMARY KEY NOT NULL,
             design_name VARCHAR NOT NULL,
             file_location VARCHAR NOT NULL,
             file_name VARCHAR NOT NULL
             );""")
-    conn.run("""CREATE TABLE
+    connection.run("""CREATE TABLE
         dim_location(
             location_id INT PRIMARY KEY NOT NULL,
             address_line_1 VARCHAR NOT NULL,
@@ -62,7 +65,7 @@ def root_warehouse_db(table_name:str, data) -> list:
             country VARCHAR NOT NULL,
             phone VARCHAR NOT NULL
             );""")
-    conn.run("""CREATE TABLE
+    connection.run("""CREATE TABLE
         dim_counterparty(
             counterparty_id INT PRIMARY KEY NOT NULL,
             counterparty_legal_name VARCHAR NOT NULL,
@@ -74,7 +77,7 @@ def root_warehouse_db(table_name:str, data) -> list:
             counterparty_legal_country VARCHAR NOT NULL,
             counterparty_legal_phone_number VARCHAR NOT NULL
             );""")
-    conn.run("""CREATE TABLE
+    connection.run("""CREATE TABLE
         fact_sales_order(
             sales_record_id SERIAL PRIMARY KEY,
             sales_order_id INT NOT NULL,
@@ -94,9 +97,9 @@ def root_warehouse_db(table_name:str, data) -> list:
             );""")
     #seeding the database in the right way
     #test_result = conn.run(f"SELECT column_name FROM information_schema.columns where table_name = '{table_name}';")
-    conn.run(f"INSERT INTO {table_name} VALUES ({data})")
-    result = conn.run(f"SELECT * FROM {table_name}")
-    conn.close()
+    connection.run(f"INSERT INTO {table_name} VALUES ({data})")
+    result = connection.run(f"SELECT * FROM {table_name}")
+    connection.close()
     return result
 
 class TestLoadLambda:
