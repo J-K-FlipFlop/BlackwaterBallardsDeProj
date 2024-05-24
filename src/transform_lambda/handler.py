@@ -33,11 +33,11 @@ def lambda_handler(event, context):
         date = {}
         date["status"] = "failed"
 
-
     counter = 0
+    timestamp = read_latest_changes()["timestamp"]
 
     if curr["status"] == "success":
-        resp = write_parquet_data_to_s3(curr["data"], "currency", session)
+        resp = write_parquet_data_to_s3(curr["data"], "currency", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -46,7 +46,7 @@ def lambda_handler(event, context):
         logging.info(curr)
     
     if cp["status"] == "success":
-        resp = write_parquet_data_to_s3(cp["data"], "counterparty", session)
+        resp = write_parquet_data_to_s3(cp["data"], "counterparty", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -55,7 +55,7 @@ def lambda_handler(event, context):
         logging.info(cp)
     
     if des["status"] == "success":
-        resp = write_parquet_data_to_s3(des["data"], "design", session)
+        resp = write_parquet_data_to_s3(des["data"], "design", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -64,7 +64,7 @@ def lambda_handler(event, context):
         logging.info(des)
     
     if loc["status"] == "success":
-        resp = write_parquet_data_to_s3(loc["data"], "location", session)
+        resp = write_parquet_data_to_s3(loc["data"], "location", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -73,7 +73,7 @@ def lambda_handler(event, context):
         logging.info(loc)
     
     if stf["status"] == "success":
-        resp = write_parquet_data_to_s3(stf["data"], "staff", session)
+        resp = write_parquet_data_to_s3(stf["data"], "staff", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -82,7 +82,7 @@ def lambda_handler(event, context):
         logging.info(stf)
     
     if sales["status"] == "success":
-        resp = write_parquet_data_to_s3(sales["data"], "sales", session)
+        resp = write_parquet_data_to_s3(sales["data"], "sales", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -91,7 +91,7 @@ def lambda_handler(event, context):
         logging.info(sales)
     
     if date["status"] == "success":
-        resp = write_parquet_data_to_s3(date["data"], "dates", session)
+        resp = write_parquet_data_to_s3(date["data"], "dates", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
