@@ -31,7 +31,7 @@ def lambda_handler(event, context):
         date = create_dim_date(sales["data"])
     else:
         date = {}
-        date["status"] == "failed"
+        date["status"] = "failed"
 
 
     counter = 0
