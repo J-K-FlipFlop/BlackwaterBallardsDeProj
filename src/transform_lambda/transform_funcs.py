@@ -227,7 +227,7 @@ def convert_sales_order(client, session):
         print("file not found")
         return response1
     filename_sales = 'sales_order.csv'
-    response_sales = get_data_from_ingestion_bucket(key, filename_sales, session)
+    response_sales = get_data_from_ingestion_bucket(key, filename_sales, session, update=False)
 
     if response_sales['status'] == 'success':
         df_sales = response_sales['data']
@@ -237,6 +237,7 @@ def convert_sales_order(client, session):
     
     created_date = {}
     created_time = {}
+    record_dict = {}
     for key in sales_dict["created_at"]:
         timestamp = sales_dict["created_at"][key]
         splitted = timestamp.split()
@@ -244,6 +245,7 @@ def convert_sales_order(client, session):
         time = splitted[1]
         created_date[key] = date
         created_time[key] = time
+        record_dict[key] = key + 1
 
     last_updated_date = {}
     last_updated_time = {}
@@ -259,9 +261,26 @@ def convert_sales_order(client, session):
     sales_dict["created_time"] = created_time 
     sales_dict["last_updated_date"] = last_updated_date
     sales_dict["last_updated_time"] = last_updated_time
+    sales_dict["sales_record_id"] = record_dict
 
     df_sales = pd.DataFrame(sales_dict)
     df_sales = df_sales.drop(["created_at", "last_updated"], axis=1)
+    df_sales = df_sales.rename(columns={"staff_id": "sales_staff_id"})
+    df_sales = df_sales.loc[:,["sales_record_id",
+                                "sales_order_id",
+                                "created_date",
+                                "created_time",
+                                "last_updated_date",
+                                "last_updated_time",
+                                "sales_staff_id",
+                                "counterparty_id",
+                                "units_sold",
+                                "unit_price",
+                                "currency_id",
+                                "design_id",
+                                "agreed_payment_date",
+                                "agreed_delivery_date",
+                                "agreed_delivery_location_id"]]
 
     output = {"status": "success", "data": df_sales}
     return output
@@ -308,6 +327,8 @@ def create_dim_date(df_sales):
         dim_dates["quarter"][key] = (date.month - 1) // 3 + 1
 
     df_dates = pd.DataFrame(dim_dates)
+    cols = list(df_dates.columns.values)
+    print(cols)
 
     output = {"status": "success", "data": df_dates}
     return output
@@ -320,7 +341,7 @@ client = boto3.client("s3")
 # convert_staff(client, session)
 # convert_location(client, session)
 # convert_counterparty(client, session)
-# x = convert_sales_order(client, session)
+# convert_sales_order(client, session)
 # print()
 # print(x["data"].columns)
 # df_sales = x["data"]
