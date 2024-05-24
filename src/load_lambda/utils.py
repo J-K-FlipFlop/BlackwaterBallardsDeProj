@@ -85,38 +85,38 @@ def get_data_from_processed_zone(client: boto3.client, pq_key: str) -> dict:
 
 
 def get_insert_query(table_name: str, dataframe: pd.DataFrame):
-    query = f"INSERT INTO {table_name} VALUES "
+    query = f"""INSERT INTO {table_name} VALUES """
     for _, row in dataframe.iterrows():
-        query += f"{tuple(row.values)}, "
-    query = f"{query[:-2]};"
+        query += f"""{tuple(row.values)}, """
+    query = f"""{query[:-2]} RETURNING *;"""
     query = query.replace("<NA>", "null")
     return query
 
 
-def insert_data_into_data_warehouse(client: boto3.client, pq_key: str):
+def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connection):
     data = get_data_from_processed_zone(client, pq_key)
     if data["status"] == "success":
         try:
             table_name = pq_key.split("/")[-1][:-8]
             table_name = sql_security(table_name)
-            # conn = connect_to_db()
             query = get_insert_query(
                 table_name=table_name, dataframe=data["data"]
             )
-            # conn.run(query)
+            connection.run(query)
             return {
                 "status": "success",
                 "table_name": table_name,
                 "message": "Data successfully inserted into data warehouse",
             }
-        except DatabaseError:
+        except DatabaseError as e:
             return {
                 "status": "failure",
                 "table_name": table_name,
                 "message": "Data was not added to data warehouse",
+                "Error Message": e
             }
         # finally:
-        # conn.close()
+        #     connection.close()
     else:
         return data
 
