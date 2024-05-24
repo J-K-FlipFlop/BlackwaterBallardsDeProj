@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 from botocore.exceptions import ClientError
 import pytest
 from src.load_lambda.utils import insert_data_into_data_warehouse
-
+from moto import mock_aws
+import boto3
 
 load_dotenv()
 
@@ -13,7 +14,20 @@ load_dotenv()
 psql_user = os.getenv("psql_username")
 psql_password = os.getenv("psql_password")
 
-#table_name:str, data
+
+@pytest.fixture(scope="function")
+def aws_creds():
+    os.environ["AWS_ACCESS_KEY_ID"] = "test"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "test"
+    os.environ["AWS_DEFAULT_REGION"] = "eu-west-2"
+
+
+@pytest.fixture(scope="function")
+def s3_client(aws_creds):
+    with mock_aws():
+        yield boto3.client("s3")
+
+
 def root_warehouse_db() -> Connection:
     conn = Connection(user=psql_user, password=psql_password, port=5432, host="localhost")
     conn.run("DROP DATABASE IF EXISTS postgres;")
@@ -21,7 +35,9 @@ def root_warehouse_db() -> Connection:
     conn = Connection(user=psql_user, password=psql_password, database="postgres", port=5432, host="localhost")
     return conn
 
-def seed_warehouse_db(table_name:str, data, connection:Connection):
+#table_name:str, data, 
+
+def seed_warehouse_db(connection:Connection):
     connection.run("""CREATE TABLE
         dim_date(
             date_id DATE PRIMARY KEY NOT NULL,
@@ -97,13 +113,61 @@ def seed_warehouse_db(table_name:str, data, connection:Connection):
             );""")
     #seeding the database in the right way
     #test_result = conn.run(f"SELECT column_name FROM information_schema.columns where table_name = '{table_name}';")
-    connection.run(f"INSERT INTO {table_name} VALUES ({data})")
-    result = connection.run(f"SELECT * FROM {table_name}")
-    connection.close()
-    return result
+# connection.run(f"INSERT INTO {table_name} VALUES ({data})")
+# result = connection.run(f"SELECT * FROM {table_name}")
+# connection.close()
+# return result
 
 class TestLoadLambda:
     def test_incorrect_table_name(self):
         with pytest.raises(DatabaseError):
-            root_warehouse_db("blimble")
+            conn = root_warehouse_db()
+            seed_warehouse_db(conn)
+            conn.run("SELECT * FROM blimble;")
+        conn.close()
     
+    def test_correct_table_name_returns_correct_values(self, s3_client):
+        conn = root_warehouse_db()
+        seed_warehouse_db(conn)
+        s3_client.create_bucket(
+            Bucket="blackwater-ingestion-zone",
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.create_bucket(
+            Bucket="blackwater-processed-zone",
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket="blackwater-ingestion-zone", Key=key2)
+        s3_client.upload_file(Filename="test/data/parquet/currency.parquet", Bucket="blackwater-processed-zone", Key="2024-05-20 12:10:03.998128/dim_currency.parquet")
+        insert_data_into_data_warehouse(s3_client, "2024-05-20 12:10:03.998128/dim_currency.parquet", conn)
+        result = conn.run("SELECT * FROM dim_currency;")
+        conn.close()
+        assert result[0][0] == 1
+        assert result[1][1] == "USD"
+        assert result[2][2] == "Euros"
+
+
+    # def test_correct_table_name_returns_correct_values_location_parquet(self, s3_client):
+    #     conn = root_warehouse_db()
+    #     seed_warehouse_db(conn)
+    #     s3_client.create_bucket(
+    #         Bucket="blackwater-ingestion-zone",
+    #         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+    #     )
+    #     s3_client.create_bucket(
+    #         Bucket="blackwater-processed-zone",
+    #         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+    #     )
+    #     key2 = "last_ran_at.csv"
+    #     filename2 = f"test/data/last_ran_at.csv"
+    #     s3_client.upload_file(Filename=filename2, Bucket="blackwater-ingestion-zone", Key=key2)
+    #     s3_client.upload_file(Filename="test/data/parquet/location.parquet", Bucket="blackwater-processed-zone", Key="2024-05-20 12:10:03.998128/dim_location.parquet")
+    #     pp(insert_data_into_data_warehouse(s3_client, "2024-05-20 12:10:03.998128/dim_location.parquet", conn))
+    #     result = conn.run("SELECT * FROM dim_location;")
+    #     conn.close()
+    #     pp(result)
+    #     assert result[0][0] == 1
+    #     assert result[1][1] == "USD"
+    #     assert result[2][2] == "Euros"
