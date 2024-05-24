@@ -1,22 +1,22 @@
-from transform_funcs import (convert_counterparty,
+from src.transform_lambda.transform_funcs import (convert_counterparty,
                              convert_currency,
                              convert_design,
                              convert_location,
                              convert_sales_order,
                              convert_staff,
                              create_dim_date)
-from utils import write_parquet_data_to_s3, read_latest_changes
+from src.transform_lambda.utils import write_parquet_data_to_s3, read_latest_changes
 import boto3
 import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-session = boto3.session.Session()
-client = boto3.client("s3")
 
-def lambda_handler(event, context, session=None, client=None):
+def lambda_handler(event, context):
     # x = read_latest_changes(client)
+    session = boto3.session.Session()
+    client = session.client("s3")
     # print(x)
     curr = convert_currency(client, session)
     cp = convert_counterparty(client, session)
@@ -29,12 +29,15 @@ def lambda_handler(event, context, session=None, client=None):
 
     if sales["status"] == "success":
         date = create_dim_date(sales["data"])
-
+    else:
+        date = {}
+        date["status"] = "failed"
 
     counter = 0
+    timestamp = read_latest_changes(client)["timestamp"]
 
     if curr["status"] == "success":
-        resp = write_parquet_data_to_s3(curr["data"], "currency", session)
+        resp = write_parquet_data_to_s3(curr["data"], "currency", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -43,7 +46,7 @@ def lambda_handler(event, context, session=None, client=None):
         logging.info(curr)
     
     if cp["status"] == "success":
-        resp = write_parquet_data_to_s3(cp["data"], "counterparty", session)
+        resp = write_parquet_data_to_s3(cp["data"], "counterparty", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -52,7 +55,7 @@ def lambda_handler(event, context, session=None, client=None):
         logging.info(cp)
     
     if des["status"] == "success":
-        resp = write_parquet_data_to_s3(des["data"], "design", session)
+        resp = write_parquet_data_to_s3(des["data"], "design", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -61,7 +64,7 @@ def lambda_handler(event, context, session=None, client=None):
         logging.info(des)
     
     if loc["status"] == "success":
-        resp = write_parquet_data_to_s3(loc["data"], "location", session)
+        resp = write_parquet_data_to_s3(loc["data"], "location", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -70,7 +73,7 @@ def lambda_handler(event, context, session=None, client=None):
         logging.info(loc)
     
     if stf["status"] == "success":
-        resp = write_parquet_data_to_s3(stf["data"], "staff", session)
+        resp = write_parquet_data_to_s3(stf["data"], "staff", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -79,17 +82,16 @@ def lambda_handler(event, context, session=None, client=None):
         logging.info(stf)
     
     if sales["status"] == "success":
-        resp = write_parquet_data_to_s3(sales["data"], "sales", session)
+        resp = write_parquet_data_to_s3(sales["data"], "sales", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
     else:
         print("sales not written")
         logging.info(sales)
-        return sales
     
     if date["status"] == "success":
-        resp = write_parquet_data_to_s3(date["data"], "dates", session)
+        resp = write_parquet_data_to_s3(date["data"], "dates", session, timestamp=timestamp)
         counter += 1
         print(resp)
         logging.info(resp)
@@ -109,4 +111,4 @@ def lambda_handler(event, context, session=None, client=None):
     # convert_sales_order()
     # create_dim_date()
 
-lambda_handler("dum", "my", session, client)
+# lambda_handler("dum", "my", session, client)

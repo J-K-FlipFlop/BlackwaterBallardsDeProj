@@ -29,16 +29,10 @@ def read_latest_changes(client: boto3.client) -> dict:
             key=lambda k: k["Key"],
             reverse=True,
         )
-        # latest_file_name = file_data[0]["Key"]
-        # timestamp = latest_file_name.split("/")[1]
-        # print(timestamp)
-        # print(file_data)
         runtime_key = "last_ran_at.csv"
         get_previous_runtime = client.get_object(Bucket='blackwater-ingestion-zone', Key=runtime_key)
         timestamp = get_previous_runtime["Body"].read().decode("utf-8")
-        # print(timestamp)
         timestamp_filtered = timestamp.split("\n")[1]
-        # print(timestamp_filtered)
 
         year = int(timestamp_filtered[0:4])
 
@@ -57,20 +51,13 @@ def read_latest_changes(client: boto3.client) -> dict:
             "timestamp": timestamp_filtered,
             "file_list": file_list,
         }
-    except ClientError:
+    except ClientError as e:
         return {
             "status": "failure",
             "timestamp": "",
             "table_list": [],
-            "message" : "client error: returning empty table list"
+            "message" : f"client error: returning empty table list {e.response}"
         }
-
-
-# loop through table list
-# read data from s3 bucket for each file
-# return data in some format
-
-
 
 def get_data_from_ingestion_bucket(
     key: str, filename: str, session: boto3.session.Session, update=True
@@ -103,11 +90,6 @@ def get_data_from_ingestion_bucket(
         return {"status": "failure", "message": nff}
 
 
-# transformation happens here
-
-
-# convert to parquet
-# write to s3 processed bucket
 def write_parquet_data_to_s3(
     data: pd.DataFrame,
     table_name: str,
@@ -149,10 +131,6 @@ def write_parquet_data_to_s3(
             "message": f"Data is in wrong format {str(type(data))} is not a pandas dataframe",
         }
 
-
-# wr.s3.read_parquet creates a dataframe
-# df.to_dict(orient='split', index=False) returns data in similar way to pg8000
-# dict with columns and data as list of lists
 """
 {'columns': ['counterparty_id', 'counterparty_legal_name', 'legal_address_id', 'commercial_contact', 'delivery_contact', 'created_at', 'last_updated'], 
 'data': [[1, 'Fahey and Sons', 15, 'Micheal Toy', 'Mrs. Lucy Runolfsdottir', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563'], 
