@@ -242,3 +242,7 @@ resource "aws_iam_role_policy_attachment" "attach_read_ingestion_zone_policy_to_
   role       = aws_iam_role.load_lambda_role.name
   policy_arn = aws_iam_policy.read_policy_ingestion_zone.arn
 }
+
+##Policy to allow ingestion bucket to access lambda
+
+# data "aws_iam_role" "allow_bucket"
