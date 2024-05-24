@@ -71,6 +71,7 @@ def write_csv_to_s3(session, data, bucket, key):
         # print(response)
         return response
 
+
 def update_data_in_bucket(table: str, bucket, session, time_of_day):
     table_info = convert_table_to_dict(table)
     runtime_key = f"last_ran_at.csv"
@@ -102,6 +103,6 @@ def update_data_in_bucket(table: str, bucket, session, time_of_day):
     if new_items:
         response = write_csv_to_s3(session=session, data=data, bucket=bucket, key=key)
     else:
-        response = {"success": False, "message": 'no new data'}
+        response = {"success": False, "message": "no new data"}
 
     return response

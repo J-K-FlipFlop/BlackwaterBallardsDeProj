@@ -20,7 +20,7 @@ def s3_client(aws_creds):
 
 class TestConvertDates:
     def test_create_dim_date_rtns_df_type_removes_drop_cols_and_adds_sales_cols(self, s3_client, file_name="sales_order"):
-        timestamp = "2024-05-20 12:10:03.998128"
+        timestamp = "original_data_dump"
         filename = f"test/data/{file_name}.csv"
         key = f"ingested_data/{timestamp}/{file_name}.csv"
         bucket = "blackwater-ingestion-zone"
@@ -46,7 +46,7 @@ class TestConvertDates:
             assert len(date_result["data"].columns) == len(column_names)
 
     def test_create_dim_date_rtns_expected_data_from_dataframe(self, s3_client, file_name="sales_order"):
-        timestamp = "2024-05-20 12:10:03.998128"
+        timestamp = "original_data_dump"
         filename = f"test/data/{file_name}.csv"
         key = f"ingested_data/{timestamp}/{file_name}.csv"
         bucket = "blackwater-ingestion-zone"

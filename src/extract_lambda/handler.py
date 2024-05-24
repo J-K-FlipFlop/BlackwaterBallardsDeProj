@@ -1,6 +1,8 @@
-from src.extract_lambda.utils import (convert_table_to_dict,
-                                       write_csv_to_s3,
-                                       update_data_in_bucket)
+from src.extract_lambda.utils import (
+    convert_table_to_dict,
+    write_csv_to_s3,
+    update_data_in_bucket,
+)
 import boto3
 import os
 import logging
@@ -41,16 +43,16 @@ def lambda_handler(event, context, session=None):
         response = update_data_in_bucket(table, bucket, session, time_of_day)
         if response["success"]:
             print(f"EXTRACTING TO: table: {table}, key: {key}")
-        elif response['message'] == 'no new data':
-            print('no new data to add ' + table)
+        elif response["message"] == "no new data":
+            print("no new data to add " + table)
         else:
             print(response["message"])
             return {"success": "false", "message": response["message"]}
-    
+
     current_runtime = [{"last_ran_at": time_of_day}]
     write_csv_to_s3(
-            session=session, data=current_runtime, bucket=bucket, key=runtime_key
-        )
+        session=session, data=current_runtime, bucket=bucket, key=runtime_key
+    )
     return {"success": "true", "message": response["message"]}
 
 

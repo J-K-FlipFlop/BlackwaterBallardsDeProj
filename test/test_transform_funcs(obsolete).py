@@ -84,7 +84,7 @@
 #         #error message on utils line 43-47 need improvement?
 #         assert result['status'] == "failure"
 #         assert result['timestamp'] == ""
-       
+
 # class TestConvertCurrency:
 #     def test_convert_currency_rtns_df_type_removes_drop_cols_and_adds_curr_name_col(self, s3_client, file_name="currency"):
 #         timestamp = "2024-05-20 12:10:03.998128"
@@ -177,7 +177,7 @@
 #         key2 = "last_ran_at.csv"
 #         filename2 = f"test/data/last_ran_at.csv"
 #         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
-        
+
 #         result = convert_staff(s3_client, session)
 #         # assert result["message"] == "marge"
 #         assert result["status"] == "success"
@@ -189,7 +189,7 @@
 #         for column in removed_columns:
 #             assert column not in result["data"].columns
 #             assert len(result["data"].columns) == len(column_names)
-        
+
 #     def test_convert_staff_without_req_file_returns_expected_error(self, s3_client, file_name1="design", file_name2="department"):
 #         timestamp = "2024-05-20 12:10:03.998128"
 #         filename1 = f"test/data/{file_name1}.csv"
@@ -251,7 +251,7 @@
 #         key2 = "last_ran_at.csv"
 #         filename2 = f"test/data/last_ran_at.csv"
 #         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
-        
+
 #         result = convert_location(s3_client, session)
 #         assert result["status"] == "success"
 #         assert isinstance(result["data"], pd.DataFrame)
@@ -321,7 +321,7 @@
 #         key2 = "last_ran_at.csv"
 #         filename2 = f"test/data/last_ran_at.csv"
 #         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
-        
+
 #         result = convert_counterparty(s3_client, session)
 #         assert result["status"] == "success"
 #         assert isinstance(result["data"], pd.DataFrame)
@@ -394,7 +394,7 @@
 #         key2 = "last_ran_at.csv"
 #         filename2 = f"test/data/last_ran_at.csv"
 #         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
-        
+
 #         result = convert_sales_order(s3_client, session)
 #         assert result["status"] == "success"
 #         assert isinstance(result["data"], pd.DataFrame)
@@ -461,7 +461,7 @@
 #         key2 = "last_ran_at.csv"
 #         filename2 = f"test/data/last_ran_at.csv"
 #         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
-        
+
 #         result = convert_sales_order(s3_client, session)
 #         date_result = create_dim_date(result['data'])
 #         assert result["status"] == "success"
@@ -492,7 +492,7 @@
 #         with pytest.raises(KeyError) as e:
 #             create_dim_date(result['data'])
 #             e.response == 'data'
-    
+
 #     def test_convert_sales_order_without_req_bucket_returns_expected_error(self, s3_client, file_name="sales_order"):
 #         timestamp = "2024-05-20 12:10:03.998128"
 #         filename = f"test/data/{file_name}.csv"

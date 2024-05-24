@@ -26,6 +26,7 @@ insert data into warehouse
     functionality
 """
 
+
 def sql_security(table):
     conn = connect_to_db()
     table_names_unfiltered = conn.run(
@@ -42,11 +43,16 @@ def sql_security(table):
             "Table not found - do not start a table name with pg_, sql_ or _"
         )
 
-def get_latest_processed_file_list(client: boto3.client, timestamp_filtered: str = None) -> dict:
+
+def get_latest_processed_file_list(
+    client: boto3.client, timestamp_filtered: str = None
+) -> dict:
     bucket = "blackwater-processed-zone"
     runtime_key = f"last_ran_at.csv"
     if not timestamp_filtered:
-        get_previous_runtime = client.get_object(Bucket='blackwater-ingestion-zone', Key=runtime_key)
+        get_previous_runtime = client.get_object(
+            Bucket="blackwater-ingestion-zone", Key=runtime_key
+        )
         timestamp = get_previous_runtime["Body"].read().decode("utf-8")
         timestamp_filtered = timestamp[12:-2]
     try:
@@ -77,33 +83,33 @@ def get_data_from_processed_zone(client: boto3.client, pq_key: str) -> dict:
         return {"status": "failure", "message": c.response["Error"]["Message"]}
 
 
-def insert_data_into_data_warehouse(
-    client: boto3.client, pq_key: str
-):
-  data = get_data_from_processed_zone(client, pq_key)
-  if data['status'] == 'success':
-    try:
-        table_name = pq_key.split('/')[-1][:-8]
-        table_name = sql_security(table_name)
-        # conn = connect_to_db()
-        query = f"INSERT INTO {table_name} VALUES "
-        for i, row in data['data'].iterrows():
-           query += f"({row['currency_code']}, {row['currency_name']}), "
-        query = f"{query[:-2]};"
-        # conn.run(query)
-        return {"status": "success",
+def insert_data_into_data_warehouse(client: boto3.client, pq_key: str):
+    data = get_data_from_processed_zone(client, pq_key)
+    if data["status"] == "success":
+        try:
+            table_name = pq_key.split("/")[-1][:-8]
+            table_name = sql_security(table_name)
+            # conn = connect_to_db()
+            query = f"INSERT INTO {table_name} VALUES "
+            for i, row in data["data"].iterrows():
+                query += f"({row['currency_code']}, {row['currency_name']}), "
+            query = f"{query[:-2]};"
+            # conn.run(query)
+            return {
+                "status": "success",
                 "table_name": table_name,
-                "message": "Data successfully inserted into data warehouse"}
-    except DatabaseError:
-        return {"status": "failure",
+                "message": "Data successfully inserted into data warehouse",
+            }
+        except DatabaseError:
+            return {
+                "status": "failure",
                 "table_name": table_name,
-                "message": "Data was not added to data warehouse"}
-    # finally:
+                "message": "Data was not added to data warehouse",
+            }
+        # finally:
         # conn.close()
-  else:
-      return data
-
-
+    else:
+        return data
 
 
 # df = pd.read_csv('test/data/TestGetFileContents.csv')

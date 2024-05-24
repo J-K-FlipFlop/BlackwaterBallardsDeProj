@@ -30,7 +30,9 @@ def read_latest_changes(client: boto3.client) -> dict:
             reverse=True,
         )
         runtime_key = "last_ran_at.csv"
-        get_previous_runtime = client.get_object(Bucket='blackwater-ingestion-zone', Key=runtime_key)
+        get_previous_runtime = client.get_object(
+            Bucket="blackwater-ingestion-zone", Key=runtime_key
+        )
         timestamp = get_previous_runtime["Body"].read().decode("utf-8")
         timestamp_filtered = timestamp.split("\n")[1]
 
@@ -40,7 +42,7 @@ def read_latest_changes(client: boto3.client) -> dict:
             file_list = [
                 file["Key"] for file in file_data if "original_data_dump" in file["Key"]
             ]
-            timestamp_filtered ="original_data_dump"
+            timestamp_filtered = "original_data_dump"
         else:
             file_list = [
                 file["Key"] for file in file_data if timestamp_filtered in file["Key"]
@@ -56,8 +58,9 @@ def read_latest_changes(client: boto3.client) -> dict:
             "status": "failure",
             "timestamp": "",
             "table_list": [],
-            "message" : f"client error: returning empty table list {e.response}"
+            "message": f"client error: returning empty table list {e.response}",
         }
+
 
 def get_data_from_ingestion_bucket(
     key: str, filename: str, session: boto3.session.Session, update=True
@@ -75,13 +78,11 @@ def get_data_from_ingestion_bucket(
             message: a relevant error message (if unsuccessful)
     """
     if update:
-        path=f"s3://blackwater-ingestion-zone/ingested_data/{key}/{filename}"
+        path = f"s3://blackwater-ingestion-zone/ingested_data/{key}/{filename}"
     else:
-        path=f"s3://blackwater-ingestion-zone/ingested_data/original_data_dump/{filename}"
+        path = f"s3://blackwater-ingestion-zone/ingested_data/original_data_dump/{filename}"
     try:
-        df = wr.s3.read_csv(
-            path=path, boto3_session=session
-        )
+        df = wr.s3.read_csv(path=path, boto3_session=session)
         # print(df.columns)
         return {"status": "success", "data": df}
     except ClientError as ce:
@@ -130,6 +131,7 @@ def write_parquet_data_to_s3(
             "status": "failure",
             "message": f"Data is in wrong format {str(type(data))} is not a pandas dataframe",
         }
+
 
 """
 {'columns': ['counterparty_id', 'counterparty_legal_name', 'legal_address_id', 'commercial_contact', 'delivery_contact', 'created_at', 'last_updated'], 
