@@ -23,7 +23,11 @@ def read_latest_changes(client: boto3.client) -> dict:
             file_list: a list of keys from the most recent folder in the ingestion zone
     """
     try:
+        responserr = client.list_buckets()
+        print(responserr)
+        print("just before list_objects")
         output = client.list_objects_v2(Bucket="blackwater-ingestion-zone")
+        print("AFTER LIST OBJECTS")
         file_data = sorted(
             [k for k in output["Contents"]],
             key=lambda k: k["Key"],
@@ -34,7 +38,9 @@ def read_latest_changes(client: boto3.client) -> dict:
         # print(timestamp)
         # print(file_data)
         runtime_key = "last_ran_at.csv"
+        print(runtime_key)
         get_previous_runtime = client.get_object(Bucket='blackwater-ingestion-zone', Key=runtime_key)
+        print(runtime_key)
         timestamp = get_previous_runtime["Body"].read().decode("utf-8")
         # print(timestamp)
         timestamp_filtered = timestamp.split("\n")[1]
@@ -57,12 +63,12 @@ def read_latest_changes(client: boto3.client) -> dict:
             "timestamp": timestamp_filtered,
             "file_list": file_list,
         }
-    except ClientError:
+    except ClientError as e:
         return {
             "status": "failure",
             "timestamp": "",
             "table_list": [],
-            "message" : "client error: returning empty table list"
+            "message" : f"client error: returning empty table list {e.response}"
         }
 
 
