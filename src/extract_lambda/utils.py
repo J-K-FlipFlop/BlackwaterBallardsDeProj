@@ -30,7 +30,7 @@ def convert_table_to_dict(table: str) -> dict:
         query_result = conn.run(f"SELECT * FROM {table};")
         columns = [col["name"] for col in conn.columns]
         totesys_data = [dict(zip(columns, row)) for row in query_result]
-        logging.info(f'Data extracted from {table} table in Totesys database')
+        logging.info(f"Data extracted from {table} table in Totesys database")
         return totesys_data
     except DatabaseError:
         error_message = f'relation "{table}" does not exist'
@@ -63,7 +63,7 @@ def sql_security(table: str) -> str:
     if table in table_names_filtered:
         return table
     else:
-        logging.error('Table not found')
+        logging.error("Table not found")
         raise DatabaseError(
             "Table not found - do not start a table name with pg_, sql_ or _"
         )
