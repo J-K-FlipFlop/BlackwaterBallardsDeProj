@@ -34,7 +34,7 @@ def lambda_handler(event, context):
         date["status"] = "failed"
 
     counter = 0
-    timestamp = read_latest_changes()["timestamp"]
+    timestamp = read_latest_changes(client)["timestamp"]
 
     if curr["status"] == "success":
         resp = write_parquet_data_to_s3(curr["data"], "currency", session, timestamp=timestamp)
