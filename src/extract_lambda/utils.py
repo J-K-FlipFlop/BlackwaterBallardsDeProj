@@ -2,7 +2,7 @@ from src.extract_lambda.connection import connect_to_db
 from botocore.exceptions import ClientError
 from pg8000.exceptions import DatabaseError
 from datetime import datetime
-from pprint import pprint as pp
+
 import boto3
 import logging
 import pandas as pd
@@ -21,7 +21,7 @@ def convert_table_to_dict(table: str) -> dict:
 
     Returns:
         A dictionary containing the following:
-            List of dictionaries containing data for each row returned (if successful)
+            List of dictionaries containing data for each row (if successful)
             status and error message in case of a database error
     """
     table = sql_security(table)
@@ -50,7 +50,7 @@ def sql_security(table: str) -> str:
         table: table name as a string, if it exists in the totesys database
 
     Raises:
-        DatabaseError: if passed table name is not found in the totesys database
+        DatabaseError: if passed table name is not in the totesys database
     """
     conn = connect_to_db()
     table_names_unfiltered = conn.run(
@@ -83,7 +83,7 @@ def sql_security(table: str) -> str:
 def write_csv_to_s3(
     session: boto3.session, data: list, bucket: str, key: str
 ) -> dict:
-    """Converts data queried from Totesys database a CSV file and writes it to S3 bucket
+    """Converts data from Totesys database into CSV and writes to S3 bucket
 
     Args:
         session: Boto3 session
@@ -118,13 +118,13 @@ def write_csv_to_s3(
 def update_data_in_bucket(
     table: str, bucket: str, session: boto3.session, time_of_day: datetime
 ):
-    """Writes data to S3 bucket and checks last ran time to ensure it is written to correct location
+    """Writes data to S3 bucket and checks last run time to create folder name
 
     Args:
         table: database table name as a string
         bucket: ingestion bucket name as a string
         session: Boto3 session
-        time_of_day: datetime timestamp used as the folder path when writing to S3
+        time_of_day: datetime timestamp, used as the folder path for S3
 
     Returns:
         A dictionary containing the following:
@@ -132,7 +132,7 @@ def update_data_in_bucket(
             message: success message or error message
     """
     table_info = convert_table_to_dict(table)
-    runtime_key = f"last_ran_at.csv"
+    runtime_key = "last_ran_at.csv"
     try:
         get_previous_runtime = boto3.resource("s3").Object(bucket, runtime_key)
         previous_lambda_runtime_uncut = (
@@ -142,7 +142,7 @@ def update_data_in_bucket(
         previous_lambda_runtime = datetime.strptime(
             previous_lambda_runtime_uncut[12:-2], "%Y-%m-%d %H:%M:%S.%f"
         )
-    except:
+    except ClientError:
         previous_lambda_runtime = datetime(1999, 12, 31, 23, 59, 59, 999999)
     # pp(previous_lambda_runtime)
     new_items = []

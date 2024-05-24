@@ -13,9 +13,10 @@ session = boto3.session.Session()
 
 
 def lambda_handler(event, context, session=None):
-    """Lambda handler function to extract data from Totesys and write to S3 ingestion zone"""
+    """Lambda handler function to extract data from Totesys and write
+       to S3 ingestion zone"""
 
-    runtime_key = f"last_ran_at.csv"
+    runtime_key = "last_ran_at.csv"
     bucket = "blackwater-ingestion-zone"
     table_list = [
         "counterparty",
