@@ -68,10 +68,10 @@ resource "aws_lambda_function" "transform_lambda" {
   function_name    = "transform_lambda"
   filename         = "${path.module}/../lambda_transform.zip"
   role             = aws_iam_role.transform_lambda_role.arn
-  handler          = "handler.transform_lambda_handler"
+  handler          = "handler.lambda_handler"
   runtime          = "python3.11"
   source_code_hash = data.archive_file.transform_lambda_dir_zip.output_base64sha256
-  layers           = ["arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python311:12", aws_lambda_layer_version.utility_layer_load.arn]
+  layers           = ["arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python311:12", aws_lambda_layer_version.utility_layer_transform.arn]
   timeout          = 45
   memory_size      = 1024
 }
@@ -84,12 +84,11 @@ data "archive_file" "transform_lambda_dir_zip" {
 }
 
 locals {
-  source_files_transform = ["${path.module}/../src/transform_lambda/connection.py", "${path.module}/../src/transform_lambda/credentials_manager.py", "${path.module}/../src/load_lambda/utils.py"]
+  source_files_transform = ["${path.module}/../src/transform_lambda/transform_funcs.py", "${path.module}/../src/transform_lambda/utils.py"]
 }
 
 data "template_file" "t_file_transform" {
   count = length(local.source_files_transform)
-
   template = file(element(local.source_files_transform, count.index))
 }
 

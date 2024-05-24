@@ -42,10 +42,15 @@ resource "aws_sns_topic_subscription" "send_extract_lambda_errors_mike" {
 }
 
 ## Transform lambda filtered metrics and alarms
+
+resource "aws_cloudwatch_log_group" "transform_lamba_logg" {
+  name = aws_lambda_function.transform_lambda.function_name
+}
+
 resource "aws_cloudwatch_log_metric_filter" "transform_lambda_errors" {
   name           = "TransformLambdaErrors"
   pattern        = "ERROR"
-  log_group_name = "/aws/lambda/${aws_lambda_function.transform_lambda.function_name}"
+  log_group_name = aws_cloudwatch_log_group.transform_lamba_logg.name
   metric_transformation {
     name      = "TransformLambdaErrors"
     namespace = "Transform Errors"
@@ -73,10 +78,15 @@ resource "aws_sns_topic_subscription" "send_transfer_lambda_errors_mike" {
   topic_arn = aws_sns_topic.transform_lambda_errors.arn
 }
 # Load lambda filtered metrics and alarms
+
+resource "aws_cloudwatch_log_group" "load_lamba_logg" {
+  name = aws_lambda_function.load_lambda.function_name
+}
+
 resource "aws_cloudwatch_log_metric_filter" "load_lambda_errors" {
   name           = "LoadLambdaErrors"
   pattern        = "ERROR"
-  log_group_name = "/aws/lambda/${aws_lambda_function.load_lambda.function_name}"
+  log_group_name = aws_cloudwatch_log_group.load_lamba_logg.name
   metric_transformation {
     name      = "LoadLambdaErrors"
     namespace = "Load Errors"

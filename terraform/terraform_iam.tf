@@ -93,8 +93,9 @@ data "aws_iam_policy_document" "transform_lambda_trust_policy" {
 
 data "aws_iam_policy_document" "read_from_ingestion_zone" {
   statement {
-    actions   = ["s3:GetObject", "s3:ListBucket"]
-    resources = ["${aws_s3_bucket.tf_ingestion_zone.arn}/*"]
+    # actions   = ["s3:GetObject", "s3:ListBucket", "s3:*"]
+    actions   = ["s3:*"]
+    resources = ["*"]
   }
 }
 
@@ -103,6 +104,26 @@ data "aws_iam_policy_document" "write_to_processed_zone" {
     actions   = ["s3:PutObject"]
     resources = ["${aws_s3_bucket.tf_processed_zone.arn}/*"]
   }
+}
+
+data "aws_iam_policy_document" "access_all_buckets" {
+  statement {
+    sid    = "EnableAnotherAWSAccountToReadTheSecret"
+    effect = "Allow"
+
+    actions   = ["s3:ListAllMyBuckets"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "list-buckets-policy" {
+  name   = "list-buckets-policy-ingestion"
+  policy = data.aws_iam_policy_document.access_all_buckets.json
+}
+
+resource "aws_iam_role_policy_attachment" "attach_list_policy_to_transform_lambda" {
+  role       = aws_iam_role.transform_lambda_role.name
+  policy_arn = aws_iam_policy.list-buckets-policy.arn
 }
 
 resource "aws_iam_policy" "read_policy_ingestion_zone" {
