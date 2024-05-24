@@ -10,6 +10,7 @@ import re
 import awswrangler as wr
 from numpy import nan
 
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -89,7 +90,7 @@ def get_insert_query(table_name: str, dataframe: pd.DataFrame):
     for _, row in dataframe.iterrows():
         query += f"""{tuple(row.values)}, """
     query = f"""{query[:-2]} RETURNING *;"""
-    query = query.replace("<NA>", "null")
+    query = query.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
     return query
 
 
