@@ -1,25 +1,24 @@
-#from fastapi import FastAPI
 from pprint import pprint as pp
-from pg8000.native import Connection
+from pg8000.native import Connection, DatabaseError
 import os
 from dotenv import load_dotenv
+from botocore.exceptions import ClientError
+import pytest
+from src.load_lambda.utils import insert_data_into_data_warehouse
 
-#app = FastAPI()
 
 load_dotenv()
 
+
 psql_user = os.getenv("psql_username")
-print(psql_user)
 psql_password = os.getenv("psql_password")
-print(psql_password)
 
 
-#@app.get("/api")
-def root_warehouse_db():
+def root_warehouse_db(table_name:str, data) -> list:
     conn = Connection(user=psql_user, password=psql_password, port=5432, host="localhost")
-    conn.run("DROP DATABASE IF EXISTS totesys;")
-    conn.run("CREATE DATABASE totesys;")
-    conn = Connection(user=psql_user, password=psql_password, database="totesys", port=5432, host="localhost")
+    conn.run("DROP DATABASE IF EXISTS postgres;")
+    conn.run("CREATE DATABASE postgres;")
+    conn = Connection(user=psql_user, password=psql_password, database="postgres", port=5432, host="localhost")
     conn.run("""CREATE TABLE
         dim_date(
             date_id DATE PRIMARY KEY NOT NULL,
@@ -94,11 +93,14 @@ def root_warehouse_db():
             agreed_delivery_locatiion_id INT NOT NULL REFERENCES dim_location(location_id)
             );""")
     #seeding the database in the right way
-    result1 = conn.run("SELECT column_name FROM information_schema.columns where table_name = 'dim_counterparty';")
-    result2 = conn.run("SELECT column_name FROM information_schema.columns where table_name = 'fact_sales_order';")
+    #test_result = conn.run(f"SELECT column_name FROM information_schema.columns where table_name = '{table_name}';")
+    conn.run(f"INSERT INTO {table_name} VALUES ({data})")
+    result = conn.run(f"SELECT * FROM {table_name}")
     conn.close()
-    print(result1)
-    print(result2)
-    print(len(result2))
+    return result
 
-root_warehouse_db()
+class TestLoadLambda:
+    def test_incorrect_table_name(self):
+        with pytest.raises(DatabaseError):
+            root_warehouse_db("blimble")
+    
