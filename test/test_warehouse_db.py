@@ -37,13 +37,13 @@ def root_warehouse_db() -> Connection:
         port=5432,
         host="localhost",
     )
-    conn.run("DROP TABLE IF EXISTS dim_date;")
-    conn.run("DROP TABLE IF EXISTS dim_staff;")
-    conn.run("DROP TABLE IF EXISTS dim_currency;")
-    conn.run("DROP TABLE IF EXISTS dim_design;")
-    conn.run("DROP TABLE IF EXISTS dim_location;")
-    conn.run("DROP TABLE IF EXISTS dim_counterparty;")
-    conn.run("DROP TABLE IF EXISTS fact_sales_order;")
+    conn.run("DROP TABLE IF EXISTS dim_date CASCADE;")
+    conn.run("DROP TABLE IF EXISTS dim_staff CASCADE;")
+    conn.run("DROP TABLE IF EXISTS dim_currency CASCADE;")
+    conn.run("DROP TABLE IF EXISTS dim_design CASCADE;")
+    conn.run("DROP TABLE IF EXISTS dim_location CASCADE;")
+    conn.run("DROP TABLE IF EXISTS dim_counterparty CASCADE;")
+    conn.run("DROP TABLE IF EXISTS fact_sales_order CASCADE;")
     return conn
 
 
