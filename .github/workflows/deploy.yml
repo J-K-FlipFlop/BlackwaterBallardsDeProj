@@ -46,7 +46,7 @@ jobs:
             - name: Initialise Postgresql
               run: sudo systemctl start postgresql.service
             - name: Setup psql user
-              run: psql --host "$PGHOST" --username="$PGUSERNAME" --dbname="postgres" --command="CREATE USER $PGUSERNAME PASSWORD '$PGPASSWORD'"
+              run: sudo -u postgres psql --command="CREATE USER $PGUSERNAME PASSWORD '$PGPASSWORD'" --command="du"
             - name: Install Make
               run: sudo apt install make -y
             - name: Run all requirements
