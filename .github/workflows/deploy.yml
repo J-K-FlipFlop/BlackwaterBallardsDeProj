@@ -25,10 +25,8 @@ jobs:
         # Runs on latest ubuntu OS
         runs-on: ubuntu-latest
         env:
-          PGHOST: localhost
-          PGDATABASE: postgres
-          PGUSERNAME: username
-          PGPASSWORD: password
+          psql_username: username
+          psql_password: password
         steps:
             - name: Checkout Repo
             # Checks-out your repo under $GITHUB_WORKSPACE our workflow can access it
@@ -46,7 +44,9 @@ jobs:
             - name: Initialise Postgresql
               run: sudo systemctl start postgresql.service
             - name: Setup psql user
-              run: sudo -u postgres psql --command="CREATE USER $PGUSERNAME PASSWORD '$PGPASSWORD'" --command="\du"
+              run: sudo -u postgres psql --command="CREATE USER $psql_username PASSWORD '$psql_password'" --command="\du"
+            - name: Test inline env vars for python
+              run: python -c 'import os;print(os.environ)'
             - name: Install Make
               run: sudo apt install make -y
             - name: Run all requirements
