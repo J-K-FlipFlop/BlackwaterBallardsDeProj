@@ -33,7 +33,7 @@ def root_warehouse_db() -> Connection:
     conn = Connection(
         user=psql_user,
         password=psql_password,
-        database="postgres",
+        database="test_db",
         port=5432,
         host="localhost",
     )
@@ -44,6 +44,7 @@ def root_warehouse_db() -> Connection:
     conn.run("DROP TABLE IF EXISTS dim_location CASCADE;")
     conn.run("DROP TABLE IF EXISTS dim_counterparty CASCADE;")
     conn.run("DROP TABLE IF EXISTS fact_sales_order CASCADE;")
+
     return conn
 
 
