@@ -50,7 +50,7 @@ jobs:
             - name: Initialize PostgreSQL
               run: |
                 sudo systemctl start postgresql.service
-                sudo -u postgres psql -f setup.sql
+                sudo -u postgres psql -f $GITHUB_WORKSPACE/setup.sql
             - name: Test inline env vars for python
               run: python -c 'import os;print(os.environ)'
             - name: Install Make
