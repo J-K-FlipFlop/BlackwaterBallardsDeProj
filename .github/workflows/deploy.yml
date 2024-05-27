@@ -41,16 +41,12 @@ jobs:
                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                  aws-region: ${{ secrets.AWS_REGION }}
-            - name: Check setup.sql file
+            - name: Initialise Postgresql
+              run: sudo systemctl start postgresql.service
+            - name: Setup psql user
               run: |
-                ls -l setup.sql
-                cat setup.sql
-            - name: Install PostgreSQL client
-              run: sudo apt-get install -y postgresql-client
-            - name: Initialize PostgreSQL
-              run: |
-                sudo systemctl start postgresql.service
-                sudo -u postgres psql -f $RUNNER_WORKSPACE/setup.sql
+                sudo -u postgres psql --command="CREATE USER $psql_username SUPERUSER LOGIN CREATEROLE CREATEDB PASSWORD '$psql_password';" --command="\du"
+                sudo -u postgres psql --command="CREATE DATABASE $psql_username WITH OWNER=$psql_username;"
             - name: Test inline env vars for python
               run: python -c 'import os;print(os.environ)'
             - name: Install Make

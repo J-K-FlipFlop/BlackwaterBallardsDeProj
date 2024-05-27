@@ -30,21 +30,10 @@ def s3_client(aws_creds):
 
 
 def root_warehouse_db() -> Connection:
-    conn = Connection(
-        user=psql_user,
-        password=psql_password,
-        database="test_db",
-        port=5432,
-        host="localhost",
-    )
-    conn.run("DROP TABLE IF EXISTS dim_date CASCADE;")
-    conn.run("DROP TABLE IF EXISTS dim_staff CASCADE;")
-    conn.run("DROP TABLE IF EXISTS dim_currency CASCADE;")
-    conn.run("DROP TABLE IF EXISTS dim_design CASCADE;")
-    conn.run("DROP TABLE IF EXISTS dim_location CASCADE;")
-    conn.run("DROP TABLE IF EXISTS dim_counterparty CASCADE;")
-    conn.run("DROP TABLE IF EXISTS fact_sales_order CASCADE;")
-
+    conn = Connection(user=psql_user, password=psql_password, port=5432, host="localhost")
+    conn.run("DROP DATABASE IF EXISTS postgres;")
+    conn.run("CREATE DATABASE postgres;")
+    conn = Connection(user=psql_user, password=psql_password, database="postgres", port=5432, host="localhost")
     return conn
 
 
