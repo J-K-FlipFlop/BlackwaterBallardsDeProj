@@ -45,8 +45,8 @@ jobs:
               run: sudo systemctl start postgresql.service
             - name: Setup psql user
               run: |
-                sudo -u postgres psql --command="CREATE USER ${{ env.psql_username }} PASSWORD ${{ env.psql_password }}" --command="\du"
-                sudo -u postgres psql -c "CREATE DATABASE test_db OWNER ${{ env.psql_username }}"
+                sudo -u postgres psql --command="CREATE USER '${{ env.psql_username }}' PASSWORD '${{ env.psql_password }}'" --command="\du"
+                sudo -u postgres psql -c "CREATE DATABASE test_db OWNER '${{ env.psql_username }}'"
             - name: Test inline env vars for python
               run: python -c 'import os;print(os.environ)'
             - name: Install Make
