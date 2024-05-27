@@ -1,24 +1,19 @@
 from pprint import pprint as pp
 from pg8000.native import Connection, DatabaseError
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from botocore.exceptions import ClientError
 import pytest
 from src.load_lambda.utils import insert_data_into_data_warehouse
 from moto import mock_aws
 import boto3
 
-load_dotenv()
+# load_dotenv()
 
 
-psql_user = os.getenv("psql_username")
-if psql_user == None:
-    psql_user = "_"
+psql_user = os.environ["psql_username"]
+psql_password = os.environ["psql_password"]
 
-
-psql_password = os.getenv("psql_password")
-if psql_password == None:
-    psql_password = "_"
 
 
 

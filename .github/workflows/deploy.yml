@@ -24,6 +24,11 @@ jobs:
         name: automated-testing
         # Runs on latest ubuntu OS
         runs-on: ubuntu-latest
+        env:
+          PGHOST: localhost
+          PGDATABASE: postgres
+          PGUSERNAME: username
+          PGPASSWORD: password
         steps:
             - name: Checkout Repo
             # Checks-out your repo under $GITHUB_WORKSPACE our workflow can access it
@@ -38,6 +43,10 @@ jobs:
                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                  aws-region: ${{ secrets.AWS_REGION }}
+            - name: Initialise Postgresql
+              run: sudo systemctl start postgresql.service
+            - name: Setup psql user
+              run: psql --host "$PGHOST" --username="$PGUSERNAME" --dbname="postgres" --command="CREATE USER $PGUSERNAME PASSWORD '$PGPASSWORD'"
             - name: Install Make
               run: sudo apt install make -y
             - name: Run all requirements
