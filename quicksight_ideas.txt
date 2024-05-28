@@ -1,0 +1,33 @@
+Total revenue - Sum of units_sold multiplied by unit_price,
+with possible need for conversion based on currency_id
+
+Revenue per sale - units_sold multiplied by unit_price, 
+accounting for currency_id conversion
+
+Revenue per location - Sum of revenue per sale BY a location
+variable, I'd say by country as others would be way too
+specific. This is done via agreed_delivery_location_id
+
+Revenue per item - See which items and designs are most 
+popular. Sum of revenue per sale BY design_name. This is
+done via design_id
+
+Most used currency for purchases - Sum of revenue per sale
+BY currency_name, done via currency_id
+
+Staff member that secures most revenue - Sum of revenue per sale
+BY first_name + last_name. Done via staff_id
+
+Location that secures the most revenue - Sum of revenue per sale
+BY dim_staff.location. Done via staff_id
+
+More purchases made on certain days - Sum of revenue per sale
+BY day_name from dim_date, done via date_id
+
+More purchases made on certain months - Sum of revenue per sale
+BY month_name from dim_date, done via date_id
+
+More purchases made on certain quarters - Sum of revenue per sale
+BY quarter from dim_date, done via date_id
+
+
