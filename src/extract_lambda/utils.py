@@ -80,9 +80,7 @@ def sql_security(table: str) -> str:
 #         return {"status": "failed", "message": c.response["Error"]["Message"]}
 
 
-def write_csv_to_s3(
-    session: boto3.session, data: list, bucket: str, key: str
-) -> dict:
+def write_csv_to_s3(session: boto3.session, data: list, bucket: str, key: str) -> dict:
     """Converts data from Totesys database into CSV and writes to S3 bucket
 
     Args:
@@ -114,8 +112,13 @@ def write_csv_to_s3(
         }
         return response
 
+
 def update_data_in_bucket(
-    table: str, bucket: str, session: boto3.session, time_of_day: datetime
+    table: str,
+    bucket: str,
+    session: boto3.session,
+    time_of_day: datetime,
+    previous_lambda_runtime,
 ):
     """Writes data to S3 bucket and checks last run time to create folder name
 
@@ -132,17 +135,7 @@ def update_data_in_bucket(
     """
     table_info = convert_table_to_dict(table)
     runtime_key = "last_ran_at.csv"
-    try:
-        get_previous_runtime = boto3.resource("s3").Object(bucket, runtime_key)
-        previous_lambda_runtime_uncut = (
-            get_previous_runtime.get()["Body"].read().decode("utf-8")
-        )
-        # if structure of blackwater-ingestion-zone/last_ran_at changes slice on line below will likely have to be updated too
-        previous_lambda_runtime = datetime.strptime(
-            previous_lambda_runtime_uncut[12:-2], "%Y-%m-%d %H:%M:%S.%f"
-        )
-    except ClientError:
-        previous_lambda_runtime = datetime(1999, 12, 31, 23, 59, 59, 999999)
+
     # pp(previous_lambda_runtime)
     new_items = []
     # current_lambda_runtime = datetime.now()
@@ -158,9 +151,7 @@ def update_data_in_bucket(
     else:
         key = f"ingested_data/{time_of_day}/{table}.csv"
     if new_items:
-        response = write_csv_to_s3(
-            session=session, data=data, bucket=bucket, key=key
-        )
+        response = write_csv_to_s3(session=session, data=data, bucket=bucket, key=key)
     else:
         response = {"success": False, "message": "no new data"}
     logging.info(response)
