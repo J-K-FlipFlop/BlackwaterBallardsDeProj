@@ -45,9 +45,7 @@ class TestReadLatestChanges:
             "ingested_data/2024-05-20 12:10:03.998128/staff.csv"
         ]
 
-    def test_function_returns_multiple_filenames_if_same_max_timestamp(
-        self, s3_client
-    ):
+    def test_function_returns_multiple_filenames_if_same_max_timestamp(self, s3_client):
         timestamp = "2024-05-20 12:10:03.998128"
         filename = "test/data/dummy_csv.csv"
         key = f"ingested_data/{timestamp}/staff.csv"
@@ -176,8 +174,7 @@ class TestGetFileContents:
         )
         assert result["status"] == "failure"
         assert (
-            str(result["message"])
-            == f"No files Found on: s3://{bucket}/{input_key}."
+            str(result["message"]) == f"No files Found on: s3://{bucket}/{input_key}."
         )
 
 
@@ -196,10 +193,7 @@ class TestWriteParquet:
         dataframe = pd.read_csv("test/data/dummy_csv.csv")
         write_parquet_data_to_s3(dataframe, input_table, session, timestamp)
         result = s3_client.list_objects_v2(Bucket=bucket)
-        assert (
-            result["Contents"][0]["Key"]
-            == f"{timestamp}/{input_table}.parquet"
-        )
+        assert result["Contents"][0]["Key"] == f"{timestamp}/{input_table}.parquet"
 
     def test_function_writes_correct_data_to_s3_bucket(self, s3_client):
         session = boto3.session.Session(
@@ -273,9 +267,7 @@ class TestWriteParquet:
         input_table = "staff"
         timestamp = "2024-05-20 12:10:03.998128"
         dataframe = pd.read_csv("test/data/dummy_csv.csv")
-        result = write_parquet_data_to_s3(
-            dataframe, input_table, session, timestamp
-        )
+        result = write_parquet_data_to_s3(dataframe, input_table, session, timestamp)
         assert result["status"] == "failure"
         assert result["message"]["Error"]["Code"] == "NoSuchBucket"
 
@@ -291,9 +283,7 @@ class TestWriteParquet:
         input_table = "staff"
         timestamp = "2024-05-20 12:10:03.998128"
         data = "string not dataframe"
-        result = write_parquet_data_to_s3(
-            data, input_table, session, timestamp
-        )
+        result = write_parquet_data_to_s3(data, input_table, session, timestamp)
         assert result["status"] == "failure"
         assert (
             result["message"]

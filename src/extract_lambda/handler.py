@@ -54,6 +54,5 @@ def lambda_handler(event, context, session=None):
     logger.info(message)
     return message
 
-
 # write_csv_to_s3()
 # lambda_handler("yo", "jo", session)

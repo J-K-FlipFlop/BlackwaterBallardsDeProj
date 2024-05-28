@@ -114,7 +114,6 @@ def write_csv_to_s3(
         }
         return response
 
-
 def update_data_in_bucket(
     table: str, bucket: str, session: boto3.session, time_of_day: datetime
 ):
@@ -164,6 +163,5 @@ def update_data_in_bucket(
         )
     else:
         response = {"success": False, "message": "no new data"}
-
     logging.info(response)
     return response

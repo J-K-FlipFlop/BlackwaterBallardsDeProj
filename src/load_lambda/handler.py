@@ -13,6 +13,7 @@ logger.setLevel(logging.INFO)
 
 session = boto3.session.Session()
 
+
 def load_lambda_handler(event, context, session=session):
     conn = connect_to_db()
     client = session.client('s3')
@@ -22,4 +23,7 @@ def load_lambda_handler(event, context, session=session):
         for file in processed_files['file_list']:
             result = insert_data_into_data_warehouse(client, file, conn)
             logger.info(result)
-    return {'status': 'success', 'message': f'added data from {len(processed_files["file_list"])} tables to data warehouse'}
+    return {
+        "status": "success",
+        "message": f'added data from {len(processed_files["file_list"])} tables to data warehouse',
+    }

@@ -104,6 +104,7 @@ class TestGetProcessedData:
             Bucket="blackwater-processed-zone",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
+
         filename = "test/data/parquet/test.parquet"
         bucket = "blackwater-processed-zone"
         key = "test.parquet"
@@ -117,6 +118,7 @@ class TestGetProcessedData:
             Bucket="blackwater-processed-zone",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
+
         filename = "test/data/parquet/test.parquet"
         bucket = "blackwater-processed-zone"
         key = "test.parquet"

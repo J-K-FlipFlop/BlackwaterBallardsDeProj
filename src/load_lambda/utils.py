@@ -84,7 +84,6 @@ def get_data_from_processed_zone(client: boto3.client, pq_key: str) -> dict:
         logger.info(f"Boto3 ClientError: {str(c)}")
         return {"status": "failure", "message": c.response["Error"]["Message"]}
 
-
 def get_insert_query(table_name: str, dataframe: pd.DataFrame):
     query = f"""INSERT INTO {table_name} VALUES """
     for _, row in dataframe.iterrows():
@@ -92,7 +91,6 @@ def get_insert_query(table_name: str, dataframe: pd.DataFrame):
     query = f"""{query[:-2]} RETURNING *;"""
     query = query.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
     return query
-
 
 def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connection):
     data = get_data_from_processed_zone(client, pq_key)

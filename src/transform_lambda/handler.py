@@ -1,10 +1,12 @@
-from src.transform_lambda.transform_funcs import (convert_counterparty,
-                             convert_currency,
-                             convert_design,
-                             convert_location,
-                             convert_sales_order,
-                             convert_staff,
-                             create_dim_date)
+from src.transform_lambda.transform_funcs import (
+    convert_counterparty,
+    convert_currency,
+    convert_design,
+    convert_location,
+    convert_sales_order,
+    convert_staff,
+    create_dim_date,
+)
 from src.transform_lambda.utils import write_parquet_data_to_s3, read_latest_changes
 import boto3
 import logging
@@ -37,72 +39,85 @@ def lambda_handler(event, context):
     timestamp = read_latest_changes(client)["timestamp"]
 
     if curr["status"] == "success":
-        resp = write_parquet_data_to_s3(curr["data"], "currency", session, timestamp=timestamp)
+        resp = write_parquet_data_to_s3(
+            curr["data"], "currency", session, timestamp=timestamp
+        )
         counter += 1
         print(resp)
         logging.info(resp)
     else:
         print("currency not written")
         logging.info(curr)
-    
+
     if cp["status"] == "success":
-        resp = write_parquet_data_to_s3(cp["data"], "counterparty", session, timestamp=timestamp)
+        resp = write_parquet_data_to_s3(
+            cp["data"], "counterparty", session, timestamp=timestamp
+        )
         counter += 1
         print(resp)
         logging.info(resp)
     else:
         print("counterparty not written")
         logging.info(cp)
-    
+
     if des["status"] == "success":
-        resp = write_parquet_data_to_s3(des["data"], "design", session, timestamp=timestamp)
+        resp = write_parquet_data_to_s3(
+            des["data"], "design", session, timestamp=timestamp
+        )
         counter += 1
         print(resp)
         logging.info(resp)
     else:
         print("design not written")
         logging.info(des)
-    
+
     if loc["status"] == "success":
-        resp = write_parquet_data_to_s3(loc["data"], "location", session, timestamp=timestamp)
+        resp = write_parquet_data_to_s3(
+            loc["data"], "location", session, timestamp=timestamp
+        )
         counter += 1
         print(resp)
         logging.info(resp)
     else:
         print("location not written")
         logging.info(loc)
-    
+
     if stf["status"] == "success":
-        resp = write_parquet_data_to_s3(stf["data"], "staff", session, timestamp=timestamp)
+        resp = write_parquet_data_to_s3(
+            stf["data"], "staff", session, timestamp=timestamp
+        )
         counter += 1
         print(resp)
         logging.info(resp)
     else:
         print("staff not written")
         logging.info(stf)
-    
+
     if sales["status"] == "success":
-        resp = write_parquet_data_to_s3(sales["data"], "sales", session, timestamp=timestamp)
+        resp = write_parquet_data_to_s3(
+            sales["data"], "sales", session, timestamp=timestamp
+        )
         counter += 1
         print(resp)
         logging.info(resp)
     else:
         print("sales not written")
         logging.info(sales)
-    
+
     if date["status"] == "success":
-        resp = write_parquet_data_to_s3(date["data"], "dates", session, timestamp=timestamp)
+        resp = write_parquet_data_to_s3(
+            date["data"], "dates", session, timestamp=timestamp
+        )
         counter += 1
         print(resp)
         logging.info(resp)
     else:
         print("date not written")
         logging.info(date)
-    
+
     message = f"Updated {counter} tables"
     print(message)
     logging.info(message)
-
 
     # convert_design()
     # convert_location()
@@ -110,5 +125,6 @@ def lambda_handler(event, context):
     # convert_staff()
     # convert_sales_order()
     # create_dim_date()
+
 
 # lambda_handler("dum", "my", session, client)
