@@ -2,10 +2,10 @@ name: blackwater-cicd
 
 ###### UNCOMMENT to automate ######
 # # Specifies the trigger for this workflow
-on:
-    push:
-        branches:
-            -main
+# on:
+#     push:
+#         branches:
+#             -main
 
 # Currently manual because code is still being built
 # on:
@@ -16,12 +16,24 @@ on:
 #                 default: dev
 #                 required: false
 
+on:
+  pull_request:
+    types:
+      - closed
 
 
 # 'Header' for all jobs needed to run
 jobs:
-    run-tests:
+  if_merged:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+        echo The PR was merged
+
+  run-tests:
         name: automated-testing
+        needs: if_merged
         # Runs on latest ubuntu OS
         runs-on: ubuntu-latest
         env:
@@ -54,7 +66,7 @@ jobs:
             - name: Run all requirements
               run: make all
 
-    deployment:
+  deployment:
         name: deploy-lambda
         needs: run-tests
         runs-on: ubuntu-latest
