@@ -44,6 +44,8 @@ def lambda_handler(event, context, session=None):
         previous_lambda_runtime = datetime.strptime(
             previous_lambda_runtime_uncut[12:-2], "%Y-%m-%d %H:%M:%S.%f"
         )
+        if previous_lambda_runtime == "1999-12-31 23:59:59.999999":
+            previous_lambda_runtime = time_of_day
     except ClientError:
         previous_lambda_runtime = datetime(1999, 12, 31, 23, 59, 59, 999999)
 
@@ -62,6 +64,8 @@ def lambda_handler(event, context, session=None):
             return {"success": "false", "message": response["message"]}
 
     current_runtime = [{"last_ran_at": time_of_day}]
+    if previous_lambda_runtime < datetime(2000, 1, 1):
+        current_runtime = [{"last_ran_at": previous_lambda_runtime}]
     write_csv_to_s3(
         session=session, data=current_runtime, bucket=bucket, key=runtime_key
     )
