@@ -24,6 +24,9 @@ jobs:
         name: automated-testing
         # Runs on latest ubuntu OS
         runs-on: ubuntu-latest
+        env:
+          psql_username: username
+          psql_password: password
         steps:
             - name: Checkout Repo
             # Checks-out your repo under $GITHUB_WORKSPACE our workflow can access it
@@ -38,6 +41,14 @@ jobs:
                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                  aws-region: ${{ secrets.AWS_REGION }}
+            - name: Initialise Postgresql
+              run: sudo systemctl start postgresql.service
+            - name: Setup psql user
+              run: |
+                sudo -u postgres psql --command="CREATE USER $psql_username SUPERUSER LOGIN CREATEROLE CREATEDB PASSWORD '$psql_password';" --command="\du"
+                sudo -u postgres psql --command="CREATE DATABASE $psql_username WITH OWNER=$psql_username;"
+            - name: Test inline env vars for python
+              run: python -c 'import os;print(os.environ)'
             - name: Install Make
               run: sudo apt install make -y
             - name: Run all requirements
