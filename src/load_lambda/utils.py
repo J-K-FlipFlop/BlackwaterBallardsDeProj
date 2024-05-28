@@ -98,6 +98,7 @@ def get_insert_query(table_name: str, dataframe: pd.DataFrame):
         query += f"""{tuple(row.values)}, """
     query = f"""{query[:-2]} RETURNING *;"""
     query = query.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
+    logger.info(query)
     return query
 
 
@@ -139,3 +140,15 @@ def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connectio
 #   row[j] for j in range(len(row)))
 # print(df)
 # df.to_parquet('currency.parquet', index=False)
+
+
+
+# df = wr.s3.read_parquet(path=f"s3://blackwater-processed-zone/original_data_dump/dim_staff.parquet")
+# print(len(df))
+# output_list = ''
+# for _, row in df.iterrows():
+#     output_list += f"{tuple(row.values)};"
+# # print(df[df['design_name'].str.contains('"')])
+
+# output = output_list.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
+# pp(output.split(';'))
