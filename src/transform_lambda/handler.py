@@ -5,7 +5,7 @@ from src.transform_lambda.transform_funcs import (
     convert_location,
     convert_sales_order,
     convert_staff,
-    create_dim_date,
+    create_dim_dates,
     convert_purchase_order
 )
 from src.transform_lambda.utils import write_parquet_data_to_s3, read_latest_changes
@@ -17,10 +17,9 @@ logger.setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
-    # x = read_latest_changes(client)
     session = boto3.session.Session()
     client = session.client("s3")
-    # print(x)
+    
     curr = convert_currency(client, session)
     cp = convert_counterparty(client, session)
     des = convert_design(client, session)
@@ -28,26 +27,7 @@ def lambda_handler(event, context):
     stf = convert_staff(client, session)
     sales = convert_sales_order(client, session)
     purchases = convert_purchase_order(client, session)
-    # print(loc)
-    # print(sales)
-
-    # if sales["status"] or purchases["status"] == "success":
-    #     date = create_dim_date(sales["data"], purchases["data"])
-    # else:
-    #     date = {}
-    #     date["status"] = "failed"
-
-    if purchases["status"] == "success":
-        purchase_data = purchases["data"]
-    else:
-        purchase_data = None
-
-    if sales["status"] == "success":
-        sales_data = sales["data"]
-    else:
-        sales_data = None
-
-    date = create_dim_date(sales_data, purchase_data)
+    date = create_dim_dates(client)
 
     counter = 0
     timestamp = read_latest_changes(client)["timestamp"]
@@ -138,21 +118,6 @@ def lambda_handler(event, context):
     }
         bucket.copy(copy_source, "last_ran_at.csv")
 
-    # s3.copyObject({
-    #     Bucket: "blackwater-ingestion-zone",
-    #     Key: "last_ran_at.csv"
-    #     CopySource: 
-    # })
-
     message = f"Updated {counter} tables"
     print(message)
     logging.info(message)
-
-    # convert_design()
-    # convert_location()
-    # cp = convert_counterparty()
-    # convert_staff()
-    # convert_sales_order()
-    # create_dim_date()
-
-lambda_handler("dum", "my")
