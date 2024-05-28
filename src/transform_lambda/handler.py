@@ -6,6 +6,7 @@ from src.transform_lambda.transform_funcs import (
     convert_sales_order,
     convert_staff,
     create_dim_date,
+    convert_purchase_order
 )
 from src.transform_lambda.utils import write_parquet_data_to_s3, read_latest_changes
 import boto3
@@ -26,14 +27,27 @@ def lambda_handler(event, context):
     loc = convert_location(client, session)
     stf = convert_staff(client, session)
     sales = convert_sales_order(client, session)
+    purchases = convert_purchase_order(client, session)
     # print(loc)
     # print(sales)
 
-    if sales["status"] == "success":
-        date = create_dim_date(sales["data"])
+    # if sales["status"] or purchases["status"] == "success":
+    #     date = create_dim_date(sales["data"], purchases["data"])
+    # else:
+    #     date = {}
+    #     date["status"] = "failed"
+
+    if purchases["status"] == "success":
+        purchase_data = purchases["data"]
     else:
-        date = {}
-        date["status"] = "failed"
+        purchase_data = None
+
+    if sales["status"] == "success":
+        sales_data = sales["data"]
+    else:
+        sales_data = None
+
+    date = create_dim_date(sales_data, purchase_data)
 
     counter = 0
     timestamp = read_latest_changes(client)["timestamp"]

@@ -299,24 +299,120 @@ def convert_sales_order(client, session):
     output = {"status": "success", "data": df_sales}
     return output
 
+def convert_purchase_order(client, session):
+    response1 = read_latest_changes(client)
+    if response1["status"] == "success":
+        key = response1["timestamp"]
+    else:
+        print("file not found")
+        return response1
+    filename_purchase = "purchase_order.csv"
+    response_purchase = get_data_from_ingestion_bucket(
+        key, filename_purchase, session, update=False
+    )
+    # print(response1, '<---- RESPONSE1')
+    if response_purchase["status"] == "success":
+        df_purchase = response_purchase["data"]
+        purchase_dict = df_purchase.to_dict()
+    else:
+        # print(response_purchase, '<---- SALES')
+        return response_purchase
+    
+    created_date = {}
+    created_time = {}
+    record_dict = {}
+    for key in purchase_dict["created_at"]:
+        timestamp = purchase_dict["created_at"][key]
+        splitted = timestamp.split()
+        date = splitted[0]
+        time = splitted[1]
+        created_date[key] = date
+        created_time[key] = time
+        record_dict[key] = key + 1
+
+    last_updated_date = {}
+    last_updated_time = {}
+    for key in purchase_dict["last_updated"]:
+        timestamp = purchase_dict["last_updated"][key]
+        splitted = timestamp.split()
+        date = splitted[0]
+        time = splitted[1]
+        last_updated_date[key] = date
+        last_updated_time[key] = time
+
+    purchase_dict["created_date"] = created_date
+    purchase_dict["created_time"] = created_time
+    purchase_dict["last_updated_date"] = last_updated_date
+    purchase_dict["last_updated_time"] = last_updated_time
+    purchase_dict["purchase_record_id"] = record_dict
+
+    df_purchase = pd.DataFrame(purchase_dict)
+    df_purchase = df_purchase.drop(["created_at", "last_updated"], axis=1)
+    df_purchase = df_purchase.loc[
+        :,
+        [
+            "purchase_record_id",
+            "purchase_order_id",
+            "created_date",
+            "created_time",
+            "last_updated_date",
+            "last_updated_time",
+            "staff_id",
+            "counterparty_id",
+            "item_code",
+            "item_quantity",
+            "item_unit_price",
+            "currency_id",
+            "agreed_delivery_date",
+            "agreed_payment_date",
+            "agreed_delivery_location_id",
+        ],
+    ]
+    output = {"status": "success", "data": df_purchase}
+    return output
 
 ## This function takes the output of convert_sales_order like so...
 ## x = convert_sales_order
 ## df_sales = x["data"]
-def create_dim_date(df_sales):
-    df_created_date = df_sales["created_date"]
-    df_last_updated = df_sales["last_updated_date"]
-    df_agreed_pay_date = df_sales["agreed_payment_date"]
-    df_agreed_del_date = df_sales["agreed_delivery_date"]
+def create_dim_date(df_sales = None, df_purchase = None):
+    if isinstance(df_sales, pd.DataFrame) and isinstance(df_purchase, pd.DataFrame):
+        frames = [df_sales, df_purchase]
+        df_combine = pd.concat(frames)
+    elif isinstance(df_sales, pd.DataFrame):
+        df_combine = df_sales
+    elif isinstance(df_purchase, pd.DataFrame):
+        df_combine = df_purchase
+
+    print(df_combine.columns, "<--------------------- COMBINE COLS LPOOK HERE")
+
+    df_created_date = df_combine["created_date"]
+    df_last_updated = df_combine["last_updated_date"]
+    df_agreed_pay_date = df_combine["agreed_payment_date"]
+    df_agreed_del_date = df_combine["agreed_delivery_date"]
     df_created_date = df_created_date.drop_duplicates()
     df_last_updated = df_last_updated.drop_duplicates()
     df_agreed_pay_date = df_agreed_pay_date.drop_duplicates()
     df_agreed_del_date = df_agreed_del_date.drop_duplicates()
 
+    # print()
+    # if df_purchase:
+    #     df_created_date = df_purchase["created_date"]
+    #     df_last_updated = df_sales["last_updated_date"]
+    #     df_agreed_pay_date = df_sales["agreed_payment_date"]
+    #     df_agreed_del_date = df_sales["agreed_delivery_date"]
+    #     df_created_date = df_created_date.drop_duplicates()
+    #     df_last_updated = df_last_updated.drop_duplicates()
+    #     df_agreed_pay_date = df_agreed_pay_date.drop_duplicates()
+    #     df_agreed_del_date = df_agreed_del_date.drop_duplicates()
+
+
     df_dates = pd.DataFrame()
     df_dates["dates"] = pd.concat(
         [df_created_date, df_agreed_pay_date, df_agreed_del_date, df_last_updated]
     )
+
+    df_dates = df_dates.drop_duplicates()
+
 
     dim_dates = df_dates.to_dict()
     dates_dict = dim_dates["dates"]
@@ -341,22 +437,34 @@ def create_dim_date(df_sales):
 
     df_dates = pd.DataFrame(dim_dates)
     cols = list(df_dates.columns.values)
-    print(cols)
+
+    df_dates = df_dates.rename(columns={"dates": "date_id"})
+    # df_dates = df_dates.sort_values(by=["date_id"])
+    df_dates = df_dates.sort_index(axis=0)
+    
+    print(df_dates)
+    # print(cols)
 
     output = {"status": "success", "data": df_dates}
     return output
 
 
-# session = boto3.session.Session()
-# client = boto3.client("s3")
+session = boto3.session.Session()
+client = boto3.client("s3")
 
 # convert_design(client, session)
 # convert_currency(client, session)
 # convert_staff(client, session)
 # convert_location(client, session)
 # convert_counterparty(client, session)
-# convert_sales_order(client, session)
+response1 = convert_sales_order(client, session)
+print(response1)
+y = response1["data"]
+response2 = convert_purchase_order(client, session)
+x = response2["data"]
+# print(x["data"].columns)
 # print()
 # print(x["data"].columns)
 # df_sales = x["data"]
-# create_dim_date(df_sales)
+create_dim_date(df_sales=None, df_purchase=x)
+create_dim_date(df_sales=y)
