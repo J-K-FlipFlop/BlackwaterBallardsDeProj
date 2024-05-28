@@ -8,6 +8,8 @@ import logging
 import pandas as pd
 import re
 import awswrangler as wr
+from numpy import nan
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -30,7 +32,7 @@ insert data into warehouse
 def sql_security(table):
     conn = connect_to_db()
     table_names_unfiltered = conn.run(
-        "SELECT TABLE_NAME FROM totesys.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
+        "SELECT TABLE_NAME FROM postgres.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
     )
     regex = re.compile("(^pg_)|(^sql_)|(^_)")
     table_names_filtered = [
@@ -82,47 +84,41 @@ def get_data_from_processed_zone(client: boto3.client, pq_key: str) -> dict:
         logger.info(f"Boto3 ClientError: {str(c)}")
         return {"status": "failure", "message": c.response["Error"]["Message"]}
 
+def get_insert_query(table_name: str, dataframe: pd.DataFrame):
+    query = f"""INSERT INTO {table_name} VALUES """
+    for _, row in dataframe.iterrows():
+        query += f"""{tuple(row.values)}, """
+    query = f"""{query[:-2]} RETURNING *;"""
+    query = query.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
+    return query
 
-def insert_data_into_data_warehouse(client: boto3.client, pq_key: str):
+def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connection):
     data = get_data_from_processed_zone(client, pq_key)
     if data["status"] == "success":
         try:
             table_name = pq_key.split("/")[-1][:-8]
             table_name = sql_security(table_name)
-            # conn = connect_to_db()
-            query = f"INSERT INTO {table_name} VALUES "
-            for i, row in data["data"].iterrows():
-                query += f"({row['currency_code']}, {row['currency_name']}), "
-            query = f"{query[:-2]};"
-            # conn.run(query)
+            query = get_insert_query(
+                table_name=table_name, dataframe=data["data"]
+            )
+            connection.run(query)
             return {
                 "status": "success",
                 "table_name": table_name,
                 "message": "Data successfully inserted into data warehouse",
             }
-        except DatabaseError:
+        except DatabaseError as e:
             return {
                 "status": "failure",
                 "table_name": table_name,
                 "message": "Data was not added to data warehouse",
+                "Error Message": e
             }
         # finally:
-        # conn.close()
+        #     connection.close()
     else:
         return data
 
-
-# df = pd.read_csv('test/data/TestGetFileContents.csv')
-# pq_df = pd.read_parquet('test.parquet')
-# print(pq_df)
-# for i, row in df.iterrows():
-#     print(f"{row['commercial_contact']}, {row['legal_address_id']}")
-# df_dict = pq_df.to_dict('split')
-# print(df_dict)
-# query = 'INSERT INTO'
-# for column in df_dict['columns']:
-#     query += f" {column},"
-# print(query)
 
 # dim_currency_dict = [{"currency_code": 'GBP',
 #                      "currency_name": 'Pound Sterling'},
@@ -130,5 +126,9 @@ def insert_data_into_data_warehouse(client: boto3.client, pq_key: str):
 #                      "currency_name": 'US Dollar'},]
 
 # df = pd.DataFrame(data=dim_currency_dict)
+# query = "INSERT INTO dim_currency VALUES "
+# for i, row in df.iterrows():
+#     print(tuple(row.values))
+#   row[j] for j in range(len(row)))
 # print(df)
 # df.to_parquet('currency.parquet', index=False)

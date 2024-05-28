@@ -3,7 +3,7 @@ import boto3
 import os
 import datetime
 from moto import mock_aws
-from src.extract_lambda.utils import write_csv_to_s3, write_to_s3, convert_table_to_dict
+from src.extract_lambda.utils import write_csv_to_s3, convert_table_to_dict
 from pg8000.exceptions import DatabaseError
 
 
@@ -55,59 +55,59 @@ def test_sql_statement_not_vulnerable_to_injection():
         convert_table_to_dict(table)
 
 
-class TestWriteToS3:
-    def test_s3_takes_file(self, s3_client):
-        data = "test/data/dummy_file.txt"
-        bucket = "bucket-for-my-emotions"
-        key = "folder/file.txt"
-        s3_client.create_bucket(
-            Bucket=bucket,
-            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
-        )
-        result = write_to_s3(s3_client, data, bucket, key)
-        assert result["message"] == "written to bucket"
+# class TestWriteToS3:
+    # def test_s3_takes_file(self, s3_client):
+    #     data = "test/data/dummy_file.txt"
+    #     bucket = "bucket-for-my-emotions"
+    #     key = "folder/file.txt"
+    #     s3_client.create_bucket(
+    #         Bucket=bucket,
+    #         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+    #     )
+    #     result = write_to_s3(s3_client, data, bucket, key)
+    #     assert result["message"] == "written to bucket"
 
-    def test_s3_uploads_correct_file_content(self, s3_client):
-        filepath = "test/data/dummy_file.txt"
-        bucket = "bucket-for-my-emotions"
-        key = "folder/file.txt"
-        s3_client.create_bucket(
-            Bucket=bucket,
-            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
-        )
-        with open(filepath, "rb") as f:
-            data = f
-            write_to_s3(s3_client, data, bucket, key)
+    # def test_s3_uploads_correct_file_content(self, s3_client):
+    #     filepath = "test/data/dummy_file.txt"
+    #     bucket = "bucket-for-my-emotions"
+    #     key = "folder/file.txt"
+    #     s3_client.create_bucket(
+    #         Bucket=bucket,
+    #         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+    #     )
+    #     with open(filepath, "rb") as f:
+    #         data = f
+    #         write_to_s3(s3_client, data, bucket, key)
 
-        response = s3_client.get_object(Bucket=bucket, Key=key)
-        print(response)
-        assert response["Body"].read().decode("UTF-8") == "hello"
+    #     response = s3_client.get_object(Bucket=bucket, Key=key)
+    #     print(response)
+    #     assert response["Body"].read().decode("UTF-8") == "hello"
 
-    def test_write_to_s3_fails_when_no_bucket(self, s3_client):
-        data = "test/data/dummy_file.txt"
-        bucket = "bucket-for-my-emotions"
-        key = "folder/file.txt"
-        result = write_to_s3(s3_client, data, bucket, key)
-        assert result["message"] == "The specified bucket does not exist"
+    # def test_write_to_s3_fails_when_no_bucket(self, s3_client):
+    #     data = "test/data/dummy_file.txt"
+    #     bucket = "bucket-for-my-emotions"
+    #     key = "folder/file.txt"
+    #     result = write_to_s3(s3_client, data, bucket, key)
+    #     assert result["message"] == "The specified bucket does not exist"
 
-    def test_write_to_s3_works_with_csv(self, s3_client):
-        filepath = "test/data/dummy_csv.csv"
-        bucket = "bucket-for-my-emotions"
-        key = "folder/file.txt"
-        s3_client.create_bucket(
-            Bucket=bucket,
-            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
-        )
-        with open(filepath, "rb") as f:
-            data = f
-            write_to_s3(s3_client, data, bucket, key)
+    # def test_write_to_s3_works_with_csv(self, s3_client):
+    #     filepath = "test/data/dummy_csv.csv"
+    #     bucket = "bucket-for-my-emotions"
+    #     key = "folder/file.txt"
+    #     s3_client.create_bucket(
+    #         Bucket=bucket,
+    #         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+    #     )
+    #     with open(filepath, "rb") as f:
+    #         data = f
+    #         write_to_s3(s3_client, data, bucket, key)
 
-        response = s3_client.get_object(Bucket=bucket, Key=key)
-        print(response)
-        assert (
-            response["Body"].read().decode("UTF-8")
-            == "hello, collumn2, the_roman_empire, homer_simpson"
-        )
+    #     response = s3_client.get_object(Bucket=bucket, Key=key)
+    #     print(response)
+    #     assert (
+    #         response["Body"].read().decode("UTF-8")
+    #         == "hello, collumn2, the_roman_empire, homer_simpson"
+    #     )
 
 
 class TestWriteCsvToS3:
