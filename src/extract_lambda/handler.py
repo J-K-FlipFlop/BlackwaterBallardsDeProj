@@ -44,7 +44,7 @@ def lambda_handler(event, context, session=None):
         previous_lambda_runtime = datetime.strptime(
             previous_lambda_runtime_uncut[12:-2], "%Y-%m-%d %H:%M:%S.%f"
         )
-        if previous_lambda_runtime == "1999-12-31 23:59:59.99999":
+        if previous_lambda_runtime[:4] == '1999':
             previous_lambda_runtime = time_of_day
     except ClientError:
         previous_lambda_runtime = datetime(1999, 12, 31, 23, 59, 59, 99999)

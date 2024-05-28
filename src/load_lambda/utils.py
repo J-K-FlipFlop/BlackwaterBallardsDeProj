@@ -56,10 +56,10 @@ def get_latest_processed_file_list(
             Bucket="blackwater-ingestion-zone", Key=runtime_key
         )
         timestamp = get_previous_runtime["Body"].read().decode("utf-8")
-        timestamp_filtered = timestamp[12:-2]
+        timestamp_filtered = timestamp[12:-8]
     try:
         output = client.list_objects_v2(Bucket=bucket)
-        if timestamp_filtered != "1999-12-31 23:59:59.99999":
+        if timestamp_filtered != "1999-12-31 23:59:59":
             file_list = [
                 file["Key"]
                 for file in output["Contents"]
