@@ -115,6 +115,21 @@ def lambda_handler(event, context):
         print("date not written")
         logging.info(date)
 
+    if counter > 0:
+        s3 = boto3.resource("s3")
+        bucket = s3.Bucket('blackwater-processed-zone')
+        copy_source = {
+            'Bucket': 'blackwater-ingestion-zone',
+            'Key': 'last_ran_at.csv'
+    }
+        bucket.copy(copy_source, "last_ran_at.csv")
+
+    # s3.copyObject({
+    #     Bucket: "blackwater-ingestion-zone",
+    #     Key: "last_ran_at.csv"
+    #     CopySource: 
+    # })
+
     message = f"Updated {counter} tables"
     print(message)
     logging.info(message)
@@ -126,5 +141,4 @@ def lambda_handler(event, context):
     # convert_sales_order()
     # create_dim_date()
 
-
-# lambda_handler("dum", "my", session, client)
+lambda_handler("dum", "my")
