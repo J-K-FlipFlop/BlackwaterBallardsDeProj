@@ -347,8 +347,8 @@ def create_dim_date(df_sales):
     return output
 
 
-session = boto3.session.Session()
-client = boto3.client("s3")
+# session = boto3.session.Session()
+# client = boto3.client("s3")
 
 # convert_design(client, session)
 # convert_currency(client, session)
