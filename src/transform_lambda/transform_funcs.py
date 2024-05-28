@@ -378,21 +378,24 @@ def create_dim_date(df_sales = None, df_purchase = None):
     if isinstance(df_sales, pd.DataFrame) and isinstance(df_purchase, pd.DataFrame):
         frames = [df_sales, df_purchase]
         df_combine = pd.concat(frames)
+        print("BOTH")
     elif isinstance(df_sales, pd.DataFrame):
         df_combine = df_sales
+        print("SALES ONLY")
     elif isinstance(df_purchase, pd.DataFrame):
         df_combine = df_purchase
+        print("PURCHASES_ONLY")
 
-    print(df_combine.columns, "<--------------------- COMBINE COLS LPOOK HERE")
+    # print(df_combine.columns, "<--------------------- COMBINE COLS LPOOK HERE")
 
     df_created_date = df_combine["created_date"]
     df_last_updated = df_combine["last_updated_date"]
     df_agreed_pay_date = df_combine["agreed_payment_date"]
     df_agreed_del_date = df_combine["agreed_delivery_date"]
-    df_created_date = df_created_date.drop_duplicates()
-    df_last_updated = df_last_updated.drop_duplicates()
-    df_agreed_pay_date = df_agreed_pay_date.drop_duplicates()
-    df_agreed_del_date = df_agreed_del_date.drop_duplicates()
+    # df_created_date = df_created_date.drop_duplicates()
+    # df_last_updated = df_last_updated.drop_duplicates()
+    # df_agreed_pay_date = df_agreed_pay_date.drop_duplicates()
+    # df_agreed_del_date = df_agreed_del_date.drop_duplicates()
 
     # print()
     # if df_purchase:
@@ -411,7 +414,9 @@ def create_dim_date(df_sales = None, df_purchase = None):
         [df_created_date, df_agreed_pay_date, df_agreed_del_date, df_last_updated]
     )
 
+    # print(df_dates)
     df_dates = df_dates.drop_duplicates()
+    df_dates = df_dates.reset_index(drop=True)
 
 
     dim_dates = df_dates.to_dict()
@@ -439,8 +444,8 @@ def create_dim_date(df_sales = None, df_purchase = None):
     cols = list(df_dates.columns.values)
 
     df_dates = df_dates.rename(columns={"dates": "date_id"})
-    # df_dates = df_dates.sort_values(by=["date_id"])
-    df_dates = df_dates.sort_index(axis=0)
+    df_dates = df_dates.sort_values(by=["date_id"])
+    # df_dates = df_dates.sort_index(axis=0)
     
     print(df_dates)
     # print(cols)
@@ -458,7 +463,6 @@ client = boto3.client("s3")
 # convert_location(client, session)
 # convert_counterparty(client, session)
 response1 = convert_sales_order(client, session)
-print(response1)
 y = response1["data"]
 response2 = convert_purchase_order(client, session)
 x = response2["data"]
@@ -468,3 +472,4 @@ x = response2["data"]
 # df_sales = x["data"]
 create_dim_date(df_sales=None, df_purchase=x)
 create_dim_date(df_sales=y)
+create_dim_date(df_sales=y, df_purchase=x)
