@@ -340,6 +340,7 @@ def create_dim_date(df_sales):
         dim_dates["quarter"][key] = (date.month - 1) // 3 + 1
 
     df_dates = pd.DataFrame(dim_dates)
+    df_dates = df_dates.drop_duplicates()
     cols = list(df_dates.columns.values)
     print(cols)
 
