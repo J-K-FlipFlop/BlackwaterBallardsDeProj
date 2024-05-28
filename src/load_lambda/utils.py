@@ -84,6 +84,7 @@ def get_data_from_processed_zone(client: boto3.client, pq_key: str) -> dict:
         logger.info(f"Boto3 ClientError: {str(c)}")
         return {"status": "failure", "message": c.response["Error"]["Message"]}
 
+
 def get_insert_query(table_name: str, dataframe: pd.DataFrame):
     query = f"""INSERT INTO {table_name} VALUES """
     for _, row in dataframe.iterrows():
@@ -92,15 +93,14 @@ def get_insert_query(table_name: str, dataframe: pd.DataFrame):
     query = query.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
     return query
 
+
 def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connection):
     data = get_data_from_processed_zone(client, pq_key)
     if data["status"] == "success":
         try:
             table_name = pq_key.split("/")[-1][:-8]
             table_name = sql_security(table_name)
-            query = get_insert_query(
-                table_name=table_name, dataframe=data["data"]
-            )
+            query = get_insert_query(table_name=table_name, dataframe=data["data"])
             connection.run(query)
             return {
                 "status": "success",
@@ -112,7 +112,7 @@ def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connectio
                 "status": "failure",
                 "table_name": table_name,
                 "message": "Data was not added to data warehouse",
-                "Error Message": e
+                "Error Message": e,
             }
         # finally:
         #     connection.close()
