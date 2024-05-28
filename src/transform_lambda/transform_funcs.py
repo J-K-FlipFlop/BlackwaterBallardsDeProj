@@ -374,85 +374,104 @@ def convert_purchase_order(client, session):
 ## This function takes the output of convert_sales_order like so...
 ## x = convert_sales_order
 ## df_sales = x["data"]
-def create_dim_date(df_sales = None, df_purchase = None):
-    if isinstance(df_sales, pd.DataFrame) and isinstance(df_purchase, pd.DataFrame):
-        frames = [df_sales, df_purchase]
-        df_combine = pd.concat(frames)
-        print("BOTH")
-    elif isinstance(df_sales, pd.DataFrame):
-        df_combine = df_sales
-        print("SALES ONLY")
-    elif isinstance(df_purchase, pd.DataFrame):
-        df_combine = df_purchase
-        print("PURCHASES_ONLY")
+# def create_dim_date(df_sales = None, df_purchase = None):
+#     if isinstance(df_sales, pd.DataFrame) and isinstance(df_purchase, pd.DataFrame):
+#         frames = [df_sales, df_purchase]
+#         df_combine = pd.concat(frames)
+#         print("BOTH")
+#     elif isinstance(df_sales, pd.DataFrame):
+#         df_combine = df_sales
+#         print("SALES ONLY")
+#     elif isinstance(df_purchase, pd.DataFrame):
+#         df_combine = df_purchase
+#         print("PURCHASES_ONLY")
 
-    # print(df_combine.columns, "<--------------------- COMBINE COLS LPOOK HERE")
+#     # print(df_combine.columns, "<--------------------- COMBINE COLS LPOOK HERE")
 
-    df_created_date = df_combine["created_date"]
-    df_last_updated = df_combine["last_updated_date"]
-    df_agreed_pay_date = df_combine["agreed_payment_date"]
-    df_agreed_del_date = df_combine["agreed_delivery_date"]
-    # df_created_date = df_created_date.drop_duplicates()
-    # df_last_updated = df_last_updated.drop_duplicates()
-    # df_agreed_pay_date = df_agreed_pay_date.drop_duplicates()
-    # df_agreed_del_date = df_agreed_del_date.drop_duplicates()
+#     df_created_date = df_combine["created_date"]
+#     df_last_updated = df_combine["last_updated_date"]
+#     df_agreed_pay_date = df_combine["agreed_payment_date"]
+#     df_agreed_del_date = df_combine["agreed_delivery_date"]
+#     # df_created_date = df_created_date.drop_duplicates()
+#     # df_last_updated = df_last_updated.drop_duplicates()
+#     # df_agreed_pay_date = df_agreed_pay_date.drop_duplicates()
+#     # df_agreed_del_date = df_agreed_del_date.drop_duplicates()
 
-    # print()
-    # if df_purchase:
-    #     df_created_date = df_purchase["created_date"]
-    #     df_last_updated = df_sales["last_updated_date"]
-    #     df_agreed_pay_date = df_sales["agreed_payment_date"]
-    #     df_agreed_del_date = df_sales["agreed_delivery_date"]
-    #     df_created_date = df_created_date.drop_duplicates()
-    #     df_last_updated = df_last_updated.drop_duplicates()
-    #     df_agreed_pay_date = df_agreed_pay_date.drop_duplicates()
-    #     df_agreed_del_date = df_agreed_del_date.drop_duplicates()
-
-
-    df_dates = pd.DataFrame()
-    df_dates["dates"] = pd.concat(
-        [df_created_date, df_agreed_pay_date, df_agreed_del_date, df_last_updated]
-    )
-
-    # print(df_dates)
-    df_dates = df_dates.drop_duplicates()
-    df_dates = df_dates.reset_index(drop=True)
+#     # print()
+#     # if df_purchase:
+#     #     df_created_date = df_purchase["created_date"]
+#     #     df_last_updated = df_sales["last_updated_date"]
+#     #     df_agreed_pay_date = df_sales["agreed_payment_date"]
+#     #     df_agreed_del_date = df_sales["agreed_delivery_date"]
+#     #     df_created_date = df_created_date.drop_duplicates()
+#     #     df_last_updated = df_last_updated.drop_duplicates()
+#     #     df_agreed_pay_date = df_agreed_pay_date.drop_duplicates()
+#     #     df_agreed_del_date = df_agreed_del_date.drop_duplicates()
 
 
-    dim_dates = df_dates.to_dict()
-    dates_dict = dim_dates["dates"]
-    dim_dates["year"] = {}
-    dim_dates["month"] = {}
-    dim_dates["day"] = {}
-    dim_dates["day_of_week"] = {}
-    dim_dates["day_name"] = {}
-    dim_dates["month_name"] = {}
-    dim_dates["quarter"] = {}
+#     df_dates = pd.DataFrame()
+#     df_dates["dates"] = pd.concat(
+#         [df_created_date, df_agreed_pay_date, df_agreed_del_date, df_last_updated]
+#     )
 
-    for key in dates_dict:
-        date = dates_dict[key]
-        date = datetime.strptime(dates_dict[key], "%Y-%m-%d")
-        dim_dates["year"][key] = date.year
-        dim_dates["month"][key] = date.month
-        dim_dates["day"][key] = date.day
-        dim_dates["day_of_week"][key] = date.weekday()
-        dim_dates["day_name"][key] = date.strftime("%A")
-        dim_dates["month_name"][key] = date.strftime("%B")
-        dim_dates["quarter"][key] = (date.month - 1) // 3 + 1
+#     # print(df_dates)
+#     df_dates = df_dates.drop_duplicates()
+#     df_dates = df_dates.reset_index(drop=True)
 
-    df_dates = pd.DataFrame(dim_dates)
-    cols = list(df_dates.columns.values)
 
-    df_dates = df_dates.rename(columns={"dates": "date_id"})
-    df_dates = df_dates.sort_values(by=["date_id"])
-    # df_dates = df_dates.sort_index(axis=0)
+#     dim_dates = df_dates.to_dict()
+#     dates_dict = dim_dates["dates"]
+#     dim_dates["year"] = {}
+#     dim_dates["month"] = {}
+#     dim_dates["day"] = {}
+#     dim_dates["day_of_week"] = {}
+#     dim_dates["day_name"] = {}
+#     dim_dates["month_name"] = {}
+#     dim_dates["quarter"] = {}
+
+#     for key in dates_dict:
+#         date = dates_dict[key]
+#         date = datetime.strptime(dates_dict[key], "%Y-%m-%d")
+#         dim_dates["year"][key] = date.year
+#         dim_dates["month"][key] = date.month
+#         dim_dates["day"][key] = date.day
+#         dim_dates["day_of_week"][key] = date.weekday()
+#         dim_dates["day_name"][key] = date.strftime("%A")
+#         dim_dates["month_name"][key] = date.strftime("%B")
+#         dim_dates["quarter"][key] = (date.month - 1) // 3 + 1
+
+#     df_dates = pd.DataFrame(dim_dates)
+#     cols = list(df_dates.columns.values)
+
+#     df_dates = df_dates.rename(columns={"dates": "date_id"})
+#     df_dates = df_dates.sort_values(by=["date_id"])
+#     # df_dates = df_dates.sort_index(axis=0)
     
-    print(df_dates)
-    # print(cols)
+#     print(df_dates)
+#     # print(cols)
 
-    output = {"status": "success", "data": df_dates}
+#     output = {"status": "success", "data": df_dates}
+#     return output
+
+def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
+    response = read_latest_changes(client)
+    if response["timestamp"] != "original_data_dump":
+        output = {"status": "failure", "message": "dim date already set"}
+        return output
+    try:
+        df = pd.DataFrame({"date_id": pd.date_range(start, end)})
+        df["year"] = df.date_id.dt.year
+        df["month"] = df.date_id.dt.month
+        df["day"] = df.date_id.dt.day
+        df["day_of_week"] = df.date_id.dt.day_of_week
+        df["day_name"] = df.date_id.dt.day_name()
+        df["month_name"] = df.date_id.dt.month_name()
+        df["quarter"] = df.date_id.dt.quarter
+        print(df)
+        output = {"status": "success", "data": df}
+    except:
+        output = {"failed": "success", "message": "something has gone horrifically wrong, check this"}
     return output
-
 
 session = boto3.session.Session()
 client = boto3.client("s3")
@@ -462,14 +481,15 @@ client = boto3.client("s3")
 # convert_staff(client, session)
 # convert_location(client, session)
 # convert_counterparty(client, session)
-response1 = convert_sales_order(client, session)
-y = response1["data"]
-response2 = convert_purchase_order(client, session)
-x = response2["data"]
+# response1 = convert_sales_order(client, session)
+# y = response1["data"]
+# response2 = convert_purchase_order(client, session)
+# x = response2["data"]
 # print(x["data"].columns)
 # print()
 # print(x["data"].columns)
 # df_sales = x["data"]
-create_dim_date(df_sales=None, df_purchase=x)
-create_dim_date(df_sales=y)
-create_dim_date(df_sales=y, df_purchase=x)
+# create_dim_date(df_sales=None, df_purchase=x)
+# create_dim_date(df_sales=y)
+# create_dim_date(df_sales=y, df_purchase=x)
+create_dim_dates(client)
