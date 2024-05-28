@@ -2,19 +2,19 @@ name: blackwater-cicd
 
 ###### UNCOMMENT to automate ######
 # # Specifies the trigger for this workflow
-# on:
-#     push:
-#         branches:
-#             -main
+on:
+    push:
+        branches:
+            -main
 
 # Currently manual because code is still being built
-on:
-    workflow_dispatch:
-        inputs:
-            environment:
-                type: string
-                default: dev
-                required: false
+# on:
+#     workflow_dispatch:
+#         inputs:
+#             environment:
+#                 type: string
+#                 default: dev
+#                 required: false
 
 
 
