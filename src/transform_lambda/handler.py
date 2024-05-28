@@ -7,7 +7,10 @@ from src.transform_lambda.transform_funcs import (
     convert_staff,
     create_dim_date,
 )
-from src.transform_lambda.utils import write_parquet_data_to_s3, read_latest_changes
+from src.transform_lambda.utils import (
+    write_parquet_data_to_s3,
+    read_latest_changes,
+)
 import boto3
 import logging
 
@@ -117,17 +120,17 @@ def lambda_handler(event, context):
 
     if counter > 0:
         s3 = boto3.resource("s3")
-        bucket = s3.Bucket('blackwater-processed-zone')
+        bucket = s3.Bucket("blackwater-processed-zone")
         copy_source = {
-            'Bucket': 'blackwater-ingestion-zone',
-            'Key': 'last_ran_at.csv'
-    }
+            "Bucket": "blackwater-ingestion-zone",
+            "Key": "last_ran_at.csv",
+        }
         bucket.copy(copy_source, "last_ran_at.csv")
 
     # s3.copyObject({
     #     Bucket: "blackwater-ingestion-zone",
     #     Key: "last_ran_at.csv"
-    #     CopySource: 
+    #     CopySource:
     # })
 
     message = f"Updated {counter} tables"
@@ -141,4 +144,5 @@ def lambda_handler(event, context):
     # convert_sales_order()
     # create_dim_date()
 
-lambda_handler("dum", "my")
+
+# lambda_handler("dum", "my")

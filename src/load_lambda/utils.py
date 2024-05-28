@@ -59,11 +59,18 @@ def get_latest_processed_file_list(
         timestamp_filtered = timestamp[12:-2]
     try:
         output = client.list_objects_v2(Bucket=bucket)
-        file_list = [
-            file["Key"]
-            for file in output["Contents"]
-            if timestamp_filtered in file["Key"]
-        ]
+        if timestamp_filtered != "1999-12-31 23:59:59.99999":
+            file_list = [
+                file["Key"]
+                for file in output["Contents"]
+                if timestamp_filtered in file["Key"]
+            ]
+        else:
+            file_list = [
+                file["Key"]
+                for file in output["Contents"]
+                if "original_data_dump" in file["Key"]
+            ]
         return {
             "status": "success",
             "file_list": file_list,
