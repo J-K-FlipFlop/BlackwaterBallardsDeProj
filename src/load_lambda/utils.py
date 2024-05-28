@@ -143,12 +143,12 @@ def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connectio
 
 
 
-df = wr.s3.read_parquet(path=f"s3://blackwater-processed-zone/original_data_dump/dim_staff.parquet")
-print(len(df))
-output_list = ''
-for _, row in df.iterrows():
-    output_list += f"{tuple(row.values)};"
-# print(df[df['design_name'].str.contains('"')])
+# df = wr.s3.read_parquet(path=f"s3://blackwater-processed-zone/original_data_dump/dim_staff.parquet")
+# print(len(df))
+# output_list = ''
+# for _, row in df.iterrows():
+#     output_list += f"{tuple(row.values)};"
+# # print(df[df['design_name'].str.contains('"')])
 
-output = output_list.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
-pp(output.split(';'))
+# output = output_list.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
+# pp(output.split(';'))
