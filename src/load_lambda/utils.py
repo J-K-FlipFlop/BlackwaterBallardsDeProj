@@ -97,6 +97,7 @@ def get_insert_query(table_name: str, dataframe: pd.DataFrame):
     for _, row in dataframe.iterrows():
         query += f"""{tuple(row.values)}, """
     query = f"""{query[:-2]} RETURNING *;"""
+    logger.info(query)
     query = query.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
     logger.info(query)
     return query
