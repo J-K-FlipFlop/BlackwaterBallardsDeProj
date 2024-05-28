@@ -8,7 +8,10 @@ from src.transform_lambda.transform_funcs import (
     create_dim_dates,
     convert_purchase_order
 )
-from src.transform_lambda.utils import write_parquet_data_to_s3, read_latest_changes
+from src.transform_lambda.utils import (
+    write_parquet_data_to_s3,
+    read_latest_changes,
+)
 import boto3
 import logging
 
@@ -34,7 +37,7 @@ def lambda_handler(event, context):
 
     if curr["status"] == "success":
         resp = write_parquet_data_to_s3(
-            curr["data"], "currency", session, timestamp=timestamp
+            curr["data"], "dim_currency", session, timestamp=timestamp
         )
         counter += 1
         print(resp)
@@ -45,7 +48,7 @@ def lambda_handler(event, context):
 
     if cp["status"] == "success":
         resp = write_parquet_data_to_s3(
-            cp["data"], "counterparty", session, timestamp=timestamp
+            cp["data"], "dim_counterparty", session, timestamp=timestamp
         )
         counter += 1
         print(resp)
@@ -56,7 +59,7 @@ def lambda_handler(event, context):
 
     if des["status"] == "success":
         resp = write_parquet_data_to_s3(
-            des["data"], "design", session, timestamp=timestamp
+            des["data"], "dim_design", session, timestamp=timestamp
         )
         counter += 1
         print(resp)
@@ -67,7 +70,7 @@ def lambda_handler(event, context):
 
     if loc["status"] == "success":
         resp = write_parquet_data_to_s3(
-            loc["data"], "location", session, timestamp=timestamp
+            loc["data"], "dim_location", session, timestamp=timestamp
         )
         counter += 1
         print(resp)
@@ -78,7 +81,7 @@ def lambda_handler(event, context):
 
     if stf["status"] == "success":
         resp = write_parquet_data_to_s3(
-            stf["data"], "staff", session, timestamp=timestamp
+            stf["data"], "dim_staff", session, timestamp=timestamp
         )
         counter += 1
         print(resp)
@@ -89,7 +92,7 @@ def lambda_handler(event, context):
 
     if sales["status"] == "success":
         resp = write_parquet_data_to_s3(
-            sales["data"], "sales", session, timestamp=timestamp
+            sales["data"], "fact_sales_order", session, timestamp=timestamp
         )
         counter += 1
         print(resp)
@@ -100,7 +103,7 @@ def lambda_handler(event, context):
 
     if date["status"] == "success":
         resp = write_parquet_data_to_s3(
-            date["data"], "dates", session, timestamp=timestamp
+            date["data"], "dim_date", session, timestamp=timestamp
         )
         counter += 1
         print(resp)
@@ -111,11 +114,11 @@ def lambda_handler(event, context):
 
     if counter > 0:
         s3 = boto3.resource("s3")
-        bucket = s3.Bucket('blackwater-processed-zone')
+        bucket = s3.Bucket("blackwater-processed-zone")
         copy_source = {
-            'Bucket': 'blackwater-ingestion-zone',
-            'Key': 'last_ran_at.csv'
-    }
+            "Bucket": "blackwater-ingestion-zone",
+            "Key": "last_ran_at.csv",
+        }
         bucket.copy(copy_source, "last_ran_at.csv")
 
     message = f"Updated {counter} tables"

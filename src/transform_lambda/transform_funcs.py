@@ -236,12 +236,12 @@ def convert_sales_order(client, session):
     response_sales = get_data_from_ingestion_bucket(
         key, filename_sales, session, update=False
     )
-    print(response1, '<---- RESPONSE1')
+    print(response1, "<---- RESPONSE1")
     if response_sales["status"] == "success":
         df_sales = response_sales["data"]
         sales_dict = df_sales.to_dict()
     else:
-        print(response_sales, '<---- SALES')
+        print(response_sales, "<---- SALES")
         return response_sales
 
     created_date = {}

@@ -56,14 +56,21 @@ def get_latest_processed_file_list(
             Bucket="blackwater-ingestion-zone", Key=runtime_key
         )
         timestamp = get_previous_runtime["Body"].read().decode("utf-8")
-        timestamp_filtered = timestamp[12:-2]
+        timestamp_filtered = timestamp[12:-8]
     try:
         output = client.list_objects_v2(Bucket=bucket)
-        file_list = [
-            file["Key"]
-            for file in output["Contents"]
-            if timestamp_filtered in file["Key"]
-        ]
+        if timestamp_filtered != "1999-12-31 23:59:59":
+            file_list = [
+                file["Key"]
+                for file in output["Contents"]
+                if timestamp_filtered in file["Key"]
+            ]
+        else:
+            file_list = [
+                file["Key"]
+                for file in output["Contents"]
+                if "original_data_dump" in file["Key"]
+            ]
         return {
             "status": "success",
             "file_list": file_list,
@@ -84,13 +91,19 @@ def get_data_from_processed_zone(client: boto3.client, pq_key: str) -> dict:
         logger.info(f"Boto3 ClientError: {str(c)}")
         return {"status": "failure", "message": c.response["Error"]["Message"]}
 
+
 def get_insert_query(table_name: str, dataframe: pd.DataFrame):
     query = f"""INSERT INTO {table_name} VALUES """
     for _, row in dataframe.iterrows():
         query += f"""{tuple(row.values)}, """
     query = f"""{query[:-2]} RETURNING *;"""
-    query = query.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
+    logger.info(query)
+    query = query.replace("<NA>", "null")
+    if table_name == 'dim_location':
+        query = query.replace("le's", "les").replace('"', "'")
+    logger.info(query)
     return query
+
 
 def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connection):
     data = get_data_from_processed_zone(client, pq_key)
@@ -98,9 +111,7 @@ def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connectio
         try:
             table_name = pq_key.split("/")[-1][:-8]
             table_name = sql_security(table_name)
-            query = get_insert_query(
-                table_name=table_name, dataframe=data["data"]
-            )
+            query = get_insert_query(table_name=table_name, dataframe=data["data"])
             connection.run(query)
             return {
                 "status": "success",
@@ -112,7 +123,7 @@ def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connectio
                 "status": "failure",
                 "table_name": table_name,
                 "message": "Data was not added to data warehouse",
-                "Error Message": e
+                "Error Message": e,
             }
         # finally:
         #     connection.close()
@@ -132,3 +143,17 @@ def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connectio
 #   row[j] for j in range(len(row)))
 # print(df)
 # df.to_parquet('currency.parquet', index=False)
+
+
+
+# df = wr.s3.read_parquet(path=f"s3://blackwater-processed-zone/original_data_dump/dim_date.parquet")
+# print(df)
+# output_list = ''
+# for _, row in df.iterrows():
+#     output_list += f"{tuple(row.values)};"
+# # print(df[df['design_name'].str.contains('"')])
+
+# output = output_list.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
+# pp(output.split(';'))
+
+

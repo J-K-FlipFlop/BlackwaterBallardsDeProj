@@ -2,18 +2,24 @@ from pprint import pprint as pp
 from pg8000.native import Connection, DatabaseError
 import os
 
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 from botocore.exceptions import ClientError
 import pytest
 from src.load_lambda.utils import insert_data_into_data_warehouse
 from moto import mock_aws
 import boto3
 
-# load_dotenv()
+load_dotenv()
 
+try:
+    psql_user = os.environ["psql_username"]
+except:
+    psql_user = os.getenv("psql_username")
 
-psql_user = os.environ["psql_username"]
-psql_password = os.environ["psql_password"]
+try:
+    psql_password = os.environ["psql_password"]
+except:
+    psql_password = os.getenv("psql_password")
 
 
 @pytest.fixture(scope="function")
@@ -30,10 +36,22 @@ def s3_client(aws_creds):
 
 
 def root_warehouse_db() -> Connection:
-    conn = Connection(user=psql_user, password=psql_password, database=psql_user, port=5432, host="localhost")
+    conn = Connection(
+        user=psql_user,
+        password=psql_password,
+        database=psql_user,
+        port=5432,
+        host="localhost",
+    )
     conn.run("DROP DATABASE IF EXISTS postgres;")
     conn.run("CREATE DATABASE postgres;")
-    conn = Connection(user=psql_user, password=psql_password, database="postgres", port=5432, host="localhost")
+    conn = Connection(
+        user=psql_user,
+        password=psql_password,
+        database="postgres",
+        port=5432,
+        host="localhost",
+    )
     return conn
 
 
