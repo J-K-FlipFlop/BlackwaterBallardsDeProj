@@ -16,11 +16,12 @@ resource "aws_cloudwatch_metric_alarm" "extract_lambda_errors_alarm" {
   evaluation_periods  = "1"
   metric_name         = "ExtractLambdaErrors"
   namespace           = "Errors"
-  period              = "30"
+  period              = "300"
   statistic           = "Sum"
   threshold           = "1"
   alarm_description   = "Identifies a errors when the extract lambda function runs"
   alarm_actions       = [aws_sns_topic.extract_lambda_errors.arn]
+  treat_missing_data  = "notBreaching"
 }
 
 
@@ -63,11 +64,12 @@ resource "aws_cloudwatch_metric_alarm" "transform_lambda_errors_alarm" {
   evaluation_periods  = "1"
   metric_name         = "TransformLambdaErrors"
   namespace           = "Errors"
-  period              = "30"
+  period              = "300"
   statistic           = "Sum"
   threshold           = "1"
   alarm_description   = "Identifies any errors when the transform lambda function runs"
   alarm_actions       = [aws_sns_topic.transform_lambda_errors.arn]
+  treat_missing_data  = "notBreaching"
 }
 resource "aws_sns_topic" "transform_lambda_errors" {
   name = "transform_lambda_errors"
@@ -104,11 +106,12 @@ resource "aws_cloudwatch_metric_alarm" "load_lambda_errors_alarm" {
   evaluation_periods  = "1"
   metric_name         = "LoadLambdaErrors"
   namespace           = "Errors"
-  period              = "30"
+  period              = "300"
   statistic           = "Sum"
   threshold           = "1"
   alarm_description   = "Identifies any errors when the load lambda function runs"
   alarm_actions       = [aws_sns_topic.load_lambda_errors.arn]
+  treat_missing_data  = "notBreaching"
 }
 resource "aws_sns_topic" "load_lambda_errors" {
   name = "load_lambda_errors"
