@@ -8,6 +8,7 @@ import pandas as pd
 from src.transform_lambda.utils import (
     read_latest_changes,
     get_data_from_ingestion_bucket,
+    write_csv_to_s3
 )
 
 
@@ -241,17 +242,25 @@ def convert_sales_order(client, session):
     response_sales = get_data_from_ingestion_bucket(
         key, filename_sales, session, update=False
     )
-    print(response1, "<---- RESPONSE1")
+    # print(response1, "<---- RESPONSE1")
     if response_sales["status"] == "success":
         df_sales = response_sales["data"]
         sales_dict = df_sales.to_dict()
     else:
         print(response_sales, "<---- SALES")
         return response_sales
+    
+    # response_id_counter = get_data_from_ingestion_bucket(
+    #     "id_counters", "sales_counter.csv", session
+    # )
+    # if response_id_counter["status"] == "success":
+    #     data = response_id_counter["data"]
+    #     counter = data["sales_record_id"].iloc[0]
+    # else:
+    #     counter = 0
 
     created_date = {}
     created_time = {}
-    record_dict = {}
     for key in sales_dict["created_at"]:
         timestamp = sales_dict["created_at"][key]
         splitted = timestamp.split()
@@ -259,7 +268,6 @@ def convert_sales_order(client, session):
         time = splitted[1]
         created_date[key] = date
         created_time[key] = time
-        record_dict[key] = key + 1
 
     last_updated_date = {}
     last_updated_time = {}
@@ -275,7 +283,6 @@ def convert_sales_order(client, session):
     sales_dict["created_time"] = created_time
     sales_dict["last_updated_date"] = last_updated_date
     sales_dict["last_updated_time"] = last_updated_time
-    sales_dict["sales_record_id"] = record_dict
 
     df_sales = pd.DataFrame(sales_dict)
     df_sales = df_sales.drop(["created_at", "last_updated"], axis=1)
@@ -283,7 +290,6 @@ def convert_sales_order(client, session):
     df_sales = df_sales.loc[
         :,
         [
-            "sales_record_id",
             "sales_order_id",
             "created_date",
             "created_time",
@@ -300,6 +306,13 @@ def convert_sales_order(client, session):
             "agreed_delivery_location_id",
         ],
     ]
+
+    # runtime_key = "sales_counter.csv"
+    # bucket = "blackwater-ingestion-zone"
+    # counter_data = [{"counter": {0: df_sales['sales_record_id'].iloc[0]}}]
+    # write_csv_to_s3(
+    #     session=session, data=counter_data, bucket=bucket, key=runtime_key
+    # )
 
     output = {"status": "success", "data": df_sales}
     return output
