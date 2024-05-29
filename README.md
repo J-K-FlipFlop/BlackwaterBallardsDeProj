@@ -53,9 +53,19 @@ The write_parquet_data_to_s3 functions takes a pandas dataframe, table_name, bot
 The transform functions use the read_latest_changes and get_data_from_ingestion_bucket utility functions to access and transform the data from each table in the Totesys database. Each function takes a client and session as arguments, and returns an output dictionary containing a success status message and a dataframe. There are unique functions for each table that exist in the final database schema, for example design, currency, staff, counterparty, etc. These functions are specific to each table in the final database as the structure of each table, the datatypes of each column, the form that the data is originally kept in the Totesys database, etc, are all different, so require specific code to format them correctly.
 
 #### handler
-The handler file contains 1 function, lambda_handler. All of the functions from transform_funcs.py are imported into handler, which runs each of them and stores them as variables. On checking these variables for a success status message, the function either writes this data to the processed zone using the write_parquet_data_to_s3 function, or prints and logs that no data was written. If any data has been written, the last_ran_at.csv at the root of the processed zone s3 bucket is updated, which will trigger the load lambda to run. FInally, the function prints and logs the number of tables updated.
+The handler file contains 1 function, lambda_handler. All of the functions from transform_funcs.py are imported into handler, which runs each of them and stores them as variables. On checking these variables for a success status message, the function either writes this data to the processed zone using the write_parquet_data_to_s3 function, or prints and logs that no data was written. If any data has been written, the last_ran_at.csv at the root of the processed zone s3 bucket is updated, which will trigger the load lambda to run. Finally, the function prints and logs the number of tables updated.
 
 ### Load Lambda
+
+#### credentials manager
+Contains a single function, get_secret. Uses AWS IAM roles to access the AWS Secrets Manager and retrieve the credentials for the Warehouse database. Returns a dictionary of the secret values.
+
+#### connection
+Uses the get_secret function from credentials_manager.py to access the Secret Values for the Warehouse database, and forms a pg8000 connection to that database with the connect_to_db function. This function returns the Connection.
+
+#### utils
+Contains 5 functions; sql_security, get_latest_processed_file_list, get_data_from_processed_zone, get_insert_query and insert_data_into_data_warehouse. 
+
 
 ## Terraform
 The Terraform file contains all the relevant Terraform files to deploy the Lambdas, S3 buckets, Cloudwatch and IAM users required for the project.

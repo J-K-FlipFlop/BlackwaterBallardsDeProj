@@ -15,7 +15,7 @@ done via design_id
 Most used currency for purchases - Sum of revenue per sale
 BY currency_name, done via currency_id
 
-Staff member that secures most revenue - Sum of revenue per sale
+Staff members that secures most revenue - Sum of revenue per sale
 BY first_name + last_name. Done via staff_id
 
 Location that secures the most revenue - Sum of revenue per sale
