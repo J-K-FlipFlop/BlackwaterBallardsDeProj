@@ -19,12 +19,14 @@ def s3_client(aws_creds):
        
 
 class TestConvertStaff:
-    def test_convert_staff_rtns_df_type_removes_drop_cols_and_adds_dept_cols(self, s3_client, file_name1="staff", file_name2="department"):
+    def test_convert_staff_rtns_df_type_removes_drop_cols_and_adds_dept_cols(self, s3_client, file_name1="staff", file_name2="department", file_name3="last_ran_at"):
         timestamp = "2024-05-20 12:10:03.998128"
         filename1 = f"test/data/{file_name1}.csv"
         key1 = f"ingested_data/{timestamp}/{file_name1}.csv"
         filename2 = f"test/data/{file_name2}.csv"
         key2 = f"ingested_data/original_data_dump/{file_name2}.csv"
+        filename3 = f"test/data/{file_name3}.csv"
+        key3 = f"{file_name3}.csv"
         bucket = "blackwater-ingestion-zone"
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -35,12 +37,11 @@ class TestConvertStaff:
         )
         s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
-        key2 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
-        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        s3_client.upload_file(Filename=filename3, Bucket=bucket, Key=key3)
         
         result = convert_staff(s3_client, session)
         # assert result["message"] == "marge"
+        print(result)
         assert result["status"] == "success"
         assert isinstance(result["data"], pd.DataFrame)
         column_names = ['staff_id', 'first_name', 'last_name', 'department_name', 'location', 'email_address']

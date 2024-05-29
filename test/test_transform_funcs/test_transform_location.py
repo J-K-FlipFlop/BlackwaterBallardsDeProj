@@ -71,7 +71,7 @@ class TestConvertLocation:
         assert list(result['data']['district'][0:10]) == ['Avon', nan, nan, 'Bedfordshire', nan, nan, 'Buckinghamshire', nan, 'Borders', 'Bedfordshire']
         assert list(result['data']['city'][0:10]) == ['New Patienceburgh', 'Aliso Viejo', 'Lake Charles', 'Olsonside', 'Fort Shadburgh', 'Kendraburgh', 'North Deshaun', 'Suffolk', 'New Tyra', 'Beaulahcester']
         assert list(result['data']['postal_code'][0:10]) == ['28441', '99305-7380', '89360', '47518', '55993-8850', '08841', '02813', '56693-0660', '30825-5672', '89470']
-        assert list(result['data']['country'][0:10]) == ['Turkey', 'San Marino', 'Samoa', 'Republic of Korea', 'Bosnia and Herzegovina', 'Zimbabwe', 'Faroe Islands', 'United Kingdom', 'Australia', "Democratic People's Republic of Korea"]
+        assert list(result['data']['country'][0:10]) == ['Turkey', 'San Marino', 'Samoa', 'Republic of Korea', 'Bosnia and Herzegovina', 'Zimbabwe', 'Faroe Islands', 'United Kingdom', 'Australia', "Democratic Peoples Republic of Korea"]
         assert list(result['data']['phone'][0:10]) == ['1803 637401', '9621 880720', '0730 783349', '1239 706295', '0081 009772', '0447 798320', '1373 796260', '8935 157571', '0768 748652', '4949 998070']
 
     def test_convert_location_without_req_file_returns_expected_error(self, s3_client, file_name="department"):
