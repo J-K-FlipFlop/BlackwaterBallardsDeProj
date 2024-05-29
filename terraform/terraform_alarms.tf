@@ -77,10 +77,10 @@ resource "aws_sns_topic_subscription" "send_transfer_lambda_errors_mike" {
   endpoint  = "mikey.5881@gmail.com"
   topic_arn = aws_sns_topic.transform_lambda_errors.arn
 }
-resource "aws_sns_topic_subscription" "send_extract_lambda_errors_richard" {
+resource "aws_sns_topic_subscription" "send_transform_lambda_errors_richard" {
   protocol  = "email"
   endpoint  = "rpwilding@proton.me"
-  topic_arn = aws_sns_topic.extract_lambda_errors.arn
+  topic_arn = aws_sns_topic.transform_lambda_errors.arn
 }
 # Load lambda filtered metrics and alarms
 
@@ -118,8 +118,8 @@ resource "aws_sns_topic_subscription" "send_load_lambda_errors_mike" {
   endpoint  = "mikey.5881@gmail.com"
   topic_arn = aws_sns_topic.load_lambda_errors.arn
 }
-resource "aws_sns_topic_subscription" "send_extract_lambda_errors_richard" {
+resource "aws_sns_topic_subscription" "send_load_lambda_errors_richard" {
   protocol  = "email"
   endpoint  = "rpwilding@proton.me"
-  topic_arn = aws_sns_topic.extract_lambda_errors.arn
+  topic_arn = aws_sns_topic.load_lambda_errors.arn
 }
