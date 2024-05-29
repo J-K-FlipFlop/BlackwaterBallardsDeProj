@@ -310,12 +310,10 @@ def convert_purchase_order(client, session):
     response_purchase = get_data_from_ingestion_bucket(
         key, filename_purchase, session, update=False
     )
-    # print(response1, '<---- RESPONSE1')
     if response_purchase["status"] == "success":
         df_purchase = response_purchase["data"]
         purchase_dict = df_purchase.to_dict()
     else:
-        # print(response_purchase, '<---- SALES')
         return response_purchase
     
     created_date = {}
@@ -390,24 +388,3 @@ def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
     except:
         output = {"failed": "success", "message": "something has gone horrifically wrong, check this"}
     return output
-
-session = boto3.session.Session()
-client = boto3.client("s3")
-
-# convert_design(client, session)
-# convert_currency(client, session)
-# convert_staff(client, session)
-# convert_location(client, session)
-# convert_counterparty(client, session)
-# response1 = convert_sales_order(client, session)
-# y = response1["data"]
-# response2 = convert_purchase_order(client, session)
-# x = response2["data"]
-# print(x["data"].columns)
-# print()
-# print(x["data"].columns)
-# df_sales = x["data"]
-# create_dim_date(df_sales=None, df_purchase=x)
-# create_dim_date(df_sales=y)
-# create_dim_date(df_sales=y, df_purchase=x)
-create_dim_dates(client)
