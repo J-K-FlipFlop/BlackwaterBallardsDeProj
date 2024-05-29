@@ -364,7 +364,6 @@ def convert_purchase_order(client, session):
     df_purchase = df_purchase.loc[
         :,
         [
-            "purchase_record_id",
             "purchase_order_id",
             "created_date",
             "created_time",
