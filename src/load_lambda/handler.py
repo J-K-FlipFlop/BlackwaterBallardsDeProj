@@ -13,10 +13,23 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-session = boto3.session.Session()
+session = boto3.session.Session(region_name='eu-west-2')
+
 
 
 def load_lambda_handler(event, context, session=session):
+    try:
+        client = session.client('cloudwatch')
+        response = client.set_alarm_state(
+            AlarmName='AlertLoadLambdaErrors',
+            StateValue='OK',
+            StateReason='Reset alarm prior to running load lambda'
+        )
+        logger.info(response)
+    except ClientError as e:
+        response = e.response
+        logger.error(response)
+
     conn = connect_to_db()
     client = session.client("s3")
     processed_files = get_latest_processed_file_list(client)
