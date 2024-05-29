@@ -371,9 +371,9 @@ def convert_purchase_order(client, session):
 
 def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
     response = read_latest_changes(client)
-    if response["timestamp"] != "original_data_dump":
-        output = {"status": "failure", "message": "dim date already set"}
-        return output
+    # if response["timestamp"] != "original_data_dump":
+    #     output = {"status": "failure", "message": "dim date already set"}
+    #     return output
     try:
         df = pd.DataFrame({"date_id": pd.date_range(start, end)})
         df["year"] = df.date_id.dt.year
@@ -384,7 +384,15 @@ def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
         df["month_name"] = df.date_id.dt.month_name()
         df["quarter"] = df.date_id.dt.quarter
         df["date_id"] = pd.to_datetime(df["date_id"]).dt.date
+        df["date_id"] = pd.to_datetime(df["date_id"])
+        df['day_name'] = df['day_name'].astype('|S80')
+        df['month_name'] = df['month_name'].astype('|S80')
         output = {"status": "success", "data": df}
     except:
         output = {"failed": "success", "message": "something has gone horrifically wrong, check this"}
+    print(df.dtypes)
     return output
+
+session = boto3.session.Session()
+client = session.client("s3")
+create_dim_dates(client)
