@@ -29,7 +29,7 @@ def lambda_handler(event, context):
     loc = convert_location(client, session)
     stf = convert_staff(client, session)
     sales = convert_sales_order(client, session)
-    purchases = convert_purchase_order(client, session)
+    purchase = convert_purchase_order(client, session)
     date = create_dim_dates(client)
 
     counter = 0
@@ -100,6 +100,17 @@ def lambda_handler(event, context):
     else:
         print("sales not written")
         logging.info(sales)
+
+    if purchase["status"] == "success":
+        resp = write_parquet_data_to_s3(
+            purchase["data"], "fact_purchase_order", session, timestamp=timestamp
+        )
+        counter += 1
+        print(resp)
+        logging.info(resp)
+    else:
+        print("purchase not written")
+        logging.info(purchase)
 
     if date["status"] == "success":
         resp = write_parquet_data_to_s3(

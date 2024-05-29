@@ -96,6 +96,8 @@ def get_insert_query(table_name: str, dataframe: pd.DataFrame):
     query = f"""INSERT INTO {table_name} """
     if table_name == "fact_sales_order":
         query += "(sales_order_id, created_date, created_time, last_updated_date, last_updated_time, sales_staff_id, counterparty_id, units_sold, unit_price, currency_id, design_id, agreed_payment_date, agreed_delivery_date, agreed_delivery_location_id) "
+    if table_name == "fact_purchase_order":
+        query += "(purchase_order_id, created_date, created_time, last_updated_date, last_updated_time, staff_id, counterparty_id, item_code, item_quantity, item_unti_price, currency_id, agreed_payment_date, agreed_delivery_date, agreed_delivery_location_id) "
     query += "VALUES "
     for _, row in dataframe.iterrows():
         query += f"""{tuple(row.values)}, """
