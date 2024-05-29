@@ -32,6 +32,23 @@ resource "aws_iam_role_policy_attachment" "attach_read_write_policy_to_extract_l
   policy_arn = aws_iam_policy.read_write_policy_ingestion_zone.arn
 }
 
+data "aws_iam_policy_document" "set_alarm_status_extract" {
+  statement {
+    actions   = ["cloudwatch:SetAlarmState"]
+    resources = ["${aws_cloudwatch_metric_alarm.extract_lambda_errors_alarm.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "set_alarm_status_extract_policy" {
+  name   = "set_alarm_status_extract_policy"
+  policy = data.aws_iam_policy_document.set_alarm_status_extract.json
+}
+
+resource "aws_iam_role_policy_attachment" "attach_set_alarm_status_policy_to_extract_lambda" {
+  role       = aws_iam_role.extract_lambda_role.name
+  policy_arn = aws_iam_policy.set_alarm_status_extract_policy.arn
+}
+
 data "aws_iam_policy_document" "extract_lambda_cloudwatch" {
   statement {
     actions   = ["logs:CreateLogGroup"]
@@ -42,38 +59,6 @@ data "aws_iam_policy_document" "extract_lambda_cloudwatch" {
     resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.extract_lambda.function_name}:*"]
   }
 }
-
-# data "aws_iam_policy_document" "transform_lambda_cloudwatch" {
-#   statement {
-#     actions   = ["logs:CreateLogGroup"]
-#     resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"]
-#   }
-#   statement {
-#     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
-#     resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.transform_lambda.function_name}:*"]
-#   }
-# }
-
-# resource "aws_iam_policy" "cloudwatch_policy_transform_lambda" {
-#   name   = "cloudwatch-policy-transform-lambda"
-#   policy = data.aws_iam_policy_document.transform_lambda_cloudwatch.json
-# }
-
-# resource "aws_iam_role_policy_attachment" "attach_cloudwatch_to_transform_lambda" {
-#   role       = aws_iam_role.transform_lambda_role.name
-#   policy_arn = aws_iam_policy.cloudwatch_policy_transform_lambda.arn
-# }
-
-# data "aws_iam_policy_document" "load_lambda_cloudwatch" {
-#   statement {
-#     actions   = ["logs:CreateLogGroup"]
-#     resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"]
-#   }
-#   statement {
-#     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
-#     resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.load_lambda.function_name}:*"]
-#   }
-# }
 
 resource "aws_iam_policy" "cloudwatch_policy_extract_lambda" {
   name   = "cloudwatch-policy-extract-lambda"
@@ -206,6 +191,23 @@ resource "aws_iam_role_policy_attachment" "attach_lambda_access_secrets_to_trans
   policy_arn = aws_iam_policy.lambda_access_secrets_policy.arn
 }
 
+data "aws_iam_policy_document" "set_alarm_status_transform" {
+  statement {
+    actions   = ["cloudwatch:SetAlarmState"]
+    resources = ["${aws_cloudwatch_metric_alarm.transform_lambda_errors_alarm.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "set_alarm_status_transform_policy" {
+  name   = "set_alarm_status_transform_policy"
+  policy = data.aws_iam_policy_document.set_alarm_status_transform.json
+}
+
+resource "aws_iam_role_policy_attachment" "attach_set_alarm_status_policy_to_transform_lambda" {
+  role       = aws_iam_role.transform_lambda_role.name
+  policy_arn = aws_iam_policy.set_alarm_status_transform_policy.arn
+}
+
 
 # Load Lambda IAM code
 resource "aws_iam_role" "load_lambda_role" {
@@ -277,4 +279,19 @@ resource "aws_iam_role_policy_attachment" "attach_read_ingestion_zone_policy_to_
 
 ##Policy to allow ingestion bucket to access lambda
 
-# data "aws_iam_role" "allow_bucket"
+data "aws_iam_policy_document" "set_alarm_status_load" {
+  statement {
+    actions   = ["cloudwatch:SetAlarmState"]
+    resources = ["${aws_cloudwatch_metric_alarm.load_lambda_errors_alarm.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "set_alarm_status_load_policy" {
+  name   = "set_alarm_status_load_policy"
+  policy = data.aws_iam_policy_document.set_alarm_status_load.json
+}
+
+resource "aws_iam_role_policy_attachment" "attach_set_alarm_status_policy_to_load_lambda" {
+  role       = aws_iam_role.load_lambda_role.name
+  policy_arn = aws_iam_policy.set_alarm_status_load_policy.arn
+}

@@ -28,18 +28,18 @@ resource "aws_lambda_permission" "extract_lambda_eventbridge" {
 }
 
 resource "aws_lambda_permission" "transform_lambda_s3_trigger" {
-  action = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.transform_lambda.function_name
-  principal = "s3.amazonaws.com"
-  source_arn = aws_s3_bucket.tf_ingestion_zone.arn
+  action         = "lambda:InvokeFunction"
+  function_name  = aws_lambda_function.transform_lambda.function_name
+  principal      = "s3.amazonaws.com"
+  source_arn     = aws_s3_bucket.tf_ingestion_zone.arn
   source_account = data.aws_caller_identity.current.account_id
 }
 
 resource "aws_lambda_permission" "load_lambda_s3_trigger" {
-  action = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.load_lambda.function_name
-  principal = "s3.amazonaws.com"
-  source_arn = aws_s3_bucket.tf_processed_zone.arn
+  action         = "lambda:InvokeFunction"
+  function_name  = aws_lambda_function.load_lambda.function_name
+  principal      = "s3.amazonaws.com"
+  source_arn     = aws_s3_bucket.tf_processed_zone.arn
   source_account = data.aws_caller_identity.current.account_id
 }
 
@@ -104,7 +104,7 @@ locals {
 }
 
 data "template_file" "t_file_transform" {
-  count = length(local.source_files_transform)
+  count    = length(local.source_files_transform)
   template = file(element(local.source_files_transform, count.index))
 }
 
