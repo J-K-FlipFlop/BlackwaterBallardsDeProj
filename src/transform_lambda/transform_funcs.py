@@ -25,6 +25,7 @@ def convert_design(client, session):
     if response2["status"] == "success":
         df_design = response2["data"]
         df_design = df_design.drop(["created_at", "last_updated"], axis=1)
+        df_design = df_design.drop_duplicates()
     else:
         return response2
 
@@ -81,7 +82,7 @@ def convert_staff(client, session):
     filename1 = "staff.csv"
     filename2 = "department.csv"
 
-    response_staff = get_data_from_ingestion_bucket(key, filename1, session)
+    response_staff = get_data_from_ingestion_bucket(key, filename1, session, update=False)
 
     # if filename2 not in response1["file_list"]:
     #     update = False
@@ -102,6 +103,8 @@ def convert_staff(client, session):
         dep_table_as_dict = df_dep.to_dict()
     else:
         return response_department
+    
+
 
     dep_id_dict = staff_table_as_dict["department_id"]
 
@@ -121,6 +124,7 @@ def convert_staff(client, session):
         ["staff_id", "first_name", "last_name", d_n, loc, "email_address"]
     ]
 
+    df_staff.replace('\'','', regex=True, inplace=True)
     output = {"status": "success", "data": df_staff}
     return output
 
@@ -148,6 +152,7 @@ def convert_location(client, session, update=False):
     df_location = df_location[
         ["location_id"] + [col for col in df_location.columns if col != "location_id"]
     ]
+    df_location.replace('\'','', regex=True, inplace=True)
     output = {"status": "success", "data": df_location}
     return output
 
@@ -384,7 +389,20 @@ def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
         df["month_name"] = df.date_id.dt.month_name()
         df["quarter"] = df.date_id.dt.quarter
         df["date_id"] = pd.to_datetime(df["date_id"]).dt.date
+        # df["date_id"] = pd.to_datetime(df["date_id"])
+        df['date_id'] = df['date_id'].astype(str)
+        df['day_name'] = df['day_name'].astype(str)
+        df['month_name'] = df['month_name'].astype(str)
         output = {"status": "success", "data": df}
     except:
         output = {"failed": "success", "message": "something has gone horrifically wrong, check this"}
+    # print(df.dtypes)
+    # print(df["date_id"])
+    # print(df)
     return output
+
+session = boto3.session.Session()
+client = session.client("s3")
+
+convert_staff(client, session)
+create_dim_dates(client)
