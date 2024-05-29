@@ -371,9 +371,9 @@ def convert_purchase_order(client, session):
 
 def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
     response = read_latest_changes(client)
-    # if response["timestamp"] != "original_data_dump":
-    #     output = {"status": "failure", "message": "dim date already set"}
-    #     return output
+    if response["timestamp"] != "original_data_dump":
+        output = {"status": "failure", "message": "dim date already set"}
+        return output
     try:
         df = pd.DataFrame({"date_id": pd.date_range(start, end)})
         df["year"] = df.date_id.dt.year
