@@ -388,7 +388,7 @@ def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
         df['month_name'] = df['month_name'].astype(str)
         output = {"status": "success", "data": df}
     except:
-        output = {"failed": "success", "message": "something has gone horrifically wrong, check this"}
+        output = {"status": "failed", "message": "something has gone horrifically wrong, check this"}
     # print(df.dtypes)
     # print(df["date_id"])
     # print(df)
