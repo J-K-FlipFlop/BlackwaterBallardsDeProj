@@ -65,7 +65,7 @@ resource "aws_cloudwatch_metric_alarm" "transform_lambda_errors_alarm" {
   metric_name         = "TransformLambdaErrors"
   namespace           = "Errors"
   period              = "300"
-  statistic           = "Minimum"
+  statistic           = "Sum"
   threshold           = "1"
   alarm_description   = "Identifies any errors when the transform lambda function runs"
   alarm_actions       = [aws_sns_topic.transform_lambda_errors.arn]
@@ -107,7 +107,7 @@ resource "aws_cloudwatch_metric_alarm" "load_lambda_errors_alarm" {
   metric_name         = "LoadLambdaErrors"
   namespace           = "Errors"
   period              = "300"
-  statistic           = "Minimum"
+  statistic           = "Sum"
   threshold           = "1"
   alarm_description   = "Identifies any errors when the load lambda function runs"
   alarm_actions       = [aws_sns_topic.load_lambda_errors.arn]
