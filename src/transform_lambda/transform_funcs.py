@@ -239,7 +239,7 @@ def convert_sales_order(client, session):
         return response1
     filename_sales = "sales_order.csv"
     response_sales = get_data_from_ingestion_bucket(
-        key, filename_sales, session, update=False
+        key, filename_sales, session
     )
     # print(response1, "<---- RESPONSE1")
     if response_sales["status"] == "success":
@@ -249,15 +249,6 @@ def convert_sales_order(client, session):
         print(response_sales, "<---- SALES")
         return response_sales
     
-    # response_id_counter = get_data_from_ingestion_bucket(
-    #     "id_counters", "sales_counter.csv", session
-    # )
-    # if response_id_counter["status"] == "success":
-    #     data = response_id_counter["data"]
-    #     counter = data["sales_record_id"].iloc[0]
-    # else:
-    #     counter = 0
-
     created_date = {}
     created_time = {}
 
@@ -306,13 +297,6 @@ def convert_sales_order(client, session):
             "agreed_delivery_location_id",
         ],
     ]
-
-    # runtime_key = "sales_counter.csv"
-    # bucket = "blackwater-ingestion-zone"
-    # counter_data = [{"counter": {0: df_sales['sales_record_id'].iloc[0]}}]
-    # write_csv_to_s3(
-    #     session=session, data=counter_data, bucket=bucket, key=runtime_key
-    # )
 
     output = {"status": "success", "data": df_sales}
     return output
