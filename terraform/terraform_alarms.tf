@@ -99,7 +99,7 @@ resource "aws_cloudwatch_log_metric_filter" "load_lambda_errors" {
   }
 }
 resource "aws_cloudwatch_metric_alarm" "load_lambda_errors_alarm" {
-  alarm_name          = "AlertTransformLambdaErrors"
+  alarm_name          = "AlertLoadLambdaErrors"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
   metric_name         = "LoadLambdaErrors"

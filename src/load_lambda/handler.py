@@ -19,7 +19,7 @@ session = boto3.session.Session(region_name='eu-west-2')
 
 def load_lambda_handler(event, context, session=session):
     try:
-        client = session.client('cloudwatch')
+        client = boto3.client('cloudwatch', region_name='eu-west-2')
         response = client.set_alarm_state(
             AlarmName='AlertLoadLambdaErrors',
             StateValue='OK',

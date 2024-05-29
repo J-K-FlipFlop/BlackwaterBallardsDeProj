@@ -24,8 +24,8 @@ def lambda_handler(event, context):
     session = boto3.session.Session(region_name='eu-west-2')
     client = session.client("s3")
     try:
-        client = session.client('cloudwatch')
-        response = client.set_alarm_state(
+        cw_client = boto3.client('cloudwatch', region_name='eu-west-2')
+        response = cw_client.set_alarm_state(
             AlarmName='AlertTransformLambdaErrors',
             StateValue='OK',
             StateReason='Reset alarm prior to running transform lambda'
