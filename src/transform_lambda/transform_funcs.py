@@ -7,7 +7,7 @@ import math
 import pandas as pd
 from src.transform_lambda.utils import (
     read_latest_changes,
-    get_data_from_ingestion_bucket
+    get_data_from_ingestion_bucket,
 )
 
 
@@ -103,8 +103,6 @@ def convert_staff(client, session):
         dep_table_as_dict = df_dep.to_dict()
     else:
         return response_department
-    
-
 
     dep_id_dict = staff_table_as_dict["department_id"]
 
@@ -124,7 +122,7 @@ def convert_staff(client, session):
         ["staff_id", "first_name", "last_name", d_n, loc, "email_address"]
     ]
 
-    df_staff.replace('\'','', regex=True, inplace=True)
+    df_staff.replace("'", "", regex=True, inplace=True)
     output = {"status": "success", "data": df_staff}
     return output
 
@@ -152,7 +150,7 @@ def convert_location(client, session, update=False):
     df_location = df_location[
         ["location_id"] + [col for col in df_location.columns if col != "location_id"]
     ]
-    df_location.replace('\'','', regex=True, inplace=True)
+    df_location.replace("'", "", regex=True, inplace=True)
     output = {"status": "success", "data": df_location}
     return output
 
@@ -238,9 +236,7 @@ def convert_sales_order(client, session):
         print("file not found")
         return response1
     filename_sales = "sales_order.csv"
-    response_sales = get_data_from_ingestion_bucket(
-        key, filename_sales, session
-    )
+    response_sales = get_data_from_ingestion_bucket(key, filename_sales, session)
     # print(response1, "<---- RESPONSE1")
     if response_sales["status"] == "success":
         df_sales = response_sales["data"]
@@ -248,7 +244,7 @@ def convert_sales_order(client, session):
     else:
         print(response_sales, "<---- SALES")
         return response_sales
-    
+
     created_date = {}
     created_time = {}
 
@@ -301,6 +297,7 @@ def convert_sales_order(client, session):
     output = {"status": "success", "data": df_sales}
     return output
 
+
 def convert_purchase_order(client, session):
     response1 = read_latest_changes(client)
     if response1["status"] == "success":
@@ -317,7 +314,7 @@ def convert_purchase_order(client, session):
         purchase_dict = df_purchase.to_dict()
     else:
         return response_purchase
-    
+
     created_date = {}
     created_time = {}
     for key in purchase_dict["created_at"]:
@@ -367,7 +364,8 @@ def convert_purchase_order(client, session):
     output = {"status": "success", "data": df_purchase}
     return output
 
-def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
+
+def create_dim_dates(client, start="2020-01-01", end="2030-01-01"):
     response = read_latest_changes(client)
     if response["timestamp"] != "original_data_dump":
         output = {"status": "failure", "message": "dim date already set"}
@@ -383,16 +381,20 @@ def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
         df["quarter"] = df.date_id.dt.quarter
         df["date_id"] = pd.to_datetime(df["date_id"]).dt.date
         # df["date_id"] = pd.to_datetime(df["date_id"])
-        df['date_id'] = df['date_id'].astype(str)
-        df['day_name'] = df['day_name'].astype(str)
-        df['month_name'] = df['month_name'].astype(str)
+        df["date_id"] = df["date_id"].astype(str)
+        df["day_name"] = df["day_name"].astype(str)
+        df["month_name"] = df["month_name"].astype(str)
         output = {"status": "success", "data": df}
     except:
-        output = {"status": "failed", "message": "something has gone horrifically wrong, check this"}
+        output = {
+            "status": "failed",
+            "message": "something has gone horrifically wrong, check this",
+        }
     # print(df.dtypes)
     # print(df["date_id"])
     # print(df)
     return output
+
 
 session = boto3.session.Session()
 client = session.client("s3")

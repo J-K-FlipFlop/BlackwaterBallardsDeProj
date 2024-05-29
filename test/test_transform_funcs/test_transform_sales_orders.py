@@ -19,7 +19,7 @@ def s3_client(aws_creds):
        
 
 class TestConvertSales:
-    def test_convert_salesorder_rtns_df_type_removes_drop_cols_and_adds_time_and_date_col(self, s3_client, file_name="sales_order"):
+    def test_convert_salesorder_with_lra_pre_2000_rtns_df_type_removes_drop_cols_and_adds_time_and_date_col(self, s3_client, file_name="sales_order"):
         timestamp = "original_data_dump"
         filename = f"test/data/{file_name}.csv"
         key = f"ingested_data/{timestamp}/{file_name}.csv"
@@ -38,6 +38,35 @@ class TestConvertSales:
         
         result = convert_sales_order(s3_client, session)
         assert result["status"] == "success"
+        assert isinstance(result["data"], pd.DataFrame)
+        column_names = ['sales_order_id', 'created_date', 'created_time', 'last_updated_date', 'last_updated_time', 'sales_staff_id', 'counterparty_id', 'units_sold', 'unit_price', 'currency_id', 'design_id', 'agreed_payment_date', 'agreed_delivery_date', 'agreed_delivery_location_id']
+        for column in column_names:
+            assert column in result["data"].columns
+        removed_columns = ['created_at', 'last_updated']
+        for column in removed_columns:
+            assert column not in result["data"].columns
+            assert len(result["data"].columns) == len(column_names)
+
+    def test_convert_salesorder_with_lra_post_2000_rtns_df_type_removes_drop_cols_and_adds_time_and_date_col(self, s3_client, file_name="sales_order"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = f"test/data/{file_name}.csv"
+        key = f"ingested_data/{timestamp}/{file_name}.csv"
+        bucket = "blackwater-ingestion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        
+        result = convert_sales_order(s3_client, session)
+        assert result["status"] == "success"
+        
         assert isinstance(result["data"], pd.DataFrame)
         column_names = ['sales_order_id', 'created_date', 'created_time', 'last_updated_date', 'last_updated_time', 'sales_staff_id', 'counterparty_id', 'units_sold', 'unit_price', 'currency_id', 'design_id', 'agreed_payment_date', 'agreed_delivery_date', 'agreed_delivery_location_id']
         for column in column_names:
@@ -81,7 +110,7 @@ class TestConvertSales:
         assert list(result['data']['agreed_delivery_date'][0:10]) == ['2022-11-07', '2022-11-06', '2022-11-05', '2022-11-05', '2022-11-04', '2022-11-04', '2022-11-06', '2022-11-09', '2022-11-08', '2022-11-13']
         assert list(result['data']['agreed_delivery_location_id'][0:10]) == [8, 19, 15, 25, 17, 28, 8, 20, 13, 15]
 
-    def test_convert_sales_order_without_req_file_returns_expected_error(self, s3_client, file_name="address"):
+    def test_convert_sales_order_with_lra_pre_2000_without_req_file_returns_expected_error(self, s3_client, file_name="address"):
         timestamp = "original_data_dump"
         filename = f"test/data/{file_name}.csv"
         key = f"ingested_data/{timestamp}/{filename}.csv"
@@ -96,6 +125,26 @@ class TestConvertSales:
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         key2 = "last_ran_at.csv"
         filename2 = f"test/data/last_ran_at_99/last_ran_at.csv"
+        s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
+        result = convert_sales_order(s3_client, session)
+        assert result['status'] == "failure"
+        assert str(result['message']) == f"No files Found on: s3://{bucket}/ingested_data/{timestamp}/sales_order.csv."
+
+    def test_convert_sales_order_with_lra_post_2000_without_req_file_returns_expected_error(self, s3_client, file_name="address"):
+        timestamp = "2024-05-20 12:10:03.998128"
+        filename = f"test/data/{file_name}.csv"
+        key = f"ingested_data/{timestamp}/{filename}.csv"
+        bucket = "blackwater-ingestion-zone"
+        session = boto3.session.Session(
+            aws_access_key_id="test", aws_secret_access_key="test"
+        )
+        s3_client.create_bucket(
+            Bucket=bucket,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
+        key2 = "last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = convert_sales_order(s3_client, session)
         assert result['status'] == "failure"
