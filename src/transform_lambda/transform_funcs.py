@@ -385,14 +385,18 @@ def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
         df["quarter"] = df.date_id.dt.quarter
         df["date_id"] = pd.to_datetime(df["date_id"]).dt.date
         df["date_id"] = pd.to_datetime(df["date_id"])
+        # df['date_id'] = df['date_id'].dt.normalize()
+        # df['date_id'] = df['date_id'].dt.floor('D')
         df['day_name'] = df['day_name'].astype('|S80')
         df['month_name'] = df['month_name'].astype('|S80')
         output = {"status": "success", "data": df}
     except:
         output = {"failed": "success", "message": "something has gone horrifically wrong, check this"}
-    print(df.dtypes)
+    # print(df.dtypes)
+    # print(df["date_id"])
+    # print(df)
     return output
 
-session = boto3.session.Session()
-client = session.client("s3")
-create_dim_dates(client)
+# session = boto3.session.Session()
+# client = session.client("s3")
+# create_dim_dates(client)
