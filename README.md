@@ -5,11 +5,11 @@ Team Blackwater has been tasked with reading data from the Totesys remote Databa
 ![alt text](image.png)
 
 ## Installation / Running the Code
-The project provides a Makefile which can be run via the Make command. This will download into the local v-env all libraries and packages specified in the requirements.in file. This includes PEP8 compliance such as Black, and security packages such as Bandit and Safety. The v-env needs to be activated manually, as does exporting PYTHONPATH to ensure all the Python files can access the correct functions.
+The project provides a Makefile which can be run via the Make command. This will download into the local v-env all libraries and packages specified in the requirements.in file. This includes PEP8 compliance such as Black, and security packages such as Bandit and Safety. The v-env needs to be activated manually, as does exporting PYTHONPATH to ensure all the Python files can access the correct functions. Vulnerabilities identified by GitHub/Safety have been addressed by changing the version number of the relevant dependency in the requirements.txt file.
 
 The project also needs a .env file, which is not included in any Git versions. This .env file ensures that a user has the correct permissions to access and run any of the AWS material. The .env should include an aws_access_key_id and aws_secret_access_key variable, which should link to the appropriate IAM user which has the specific permissions.
 
-The IAM user should also be granted ability to view the relevant secrets on the AWS Secret Manager. This is because the credentials to connect to the totesys database (relevant code stored in src/extract_lambda/credentials_manager.py), is stored remotely in AWS Secret Manager for security purposes.
+The IAM user should also be granted ability to view the relevant secrets on the AWS Secret Manager. This is because the credentials to connect to the Totesys database (relevant code stored in src/extract_lambda/credentials_manager.py), is stored remotely in AWS Secret Manager for security purposes.
 
 The project was agreed to run on Python version 3.11.1, which is stated in the .python-version file.
 
@@ -19,20 +19,20 @@ The src file contains all the Python code that is needed for the AWS Lambdas. Th
 ### Extract Lambda
 
 #### connection
-Accesses the username, password etc from the secrets manager required to form a connection to the totesys database. The only function, connect_to_db returns a pg8000 native connection to the totesys database.
+Accesses the username, password etc from the secrets manager required to form a connection to the Totesys database. The only function, connect_to_db returns a pg8000 native connection to the Totesys database.
 
 #### credentials_manager
-Using the relevant IAM user access key and secret access key stored in the .env file (see Installation guide), uses boto3 to access aws secrets manager and returns a dictionary containing the totesys connection information. This process is done in the get_secret function. Throws an error if cannot get a connection to the secrets manager.
+Using the relevant IAM user access key and secret access key stored in the .env file (see Installation guide), uses boto3 to access aws secrets manager and returns a dictionary containing the Totesys connection information. This process is done in the get_secret function. Throws an error if cannot get a connection to the secrets manager.
 
 #### handler
-Contains only 1 function, lambda_handler, which takes a boto3 session as an argument. Using a hard-coded list of table names from the Totesys Database (can be done programatically if need be), for each table in the database, uses the write_csv_to_s3 utility function to write the table data to the specified bucket. The table name is written in as part of the file path to the relevant storage location in the bucket. The function logs a success message if successful, or logs an error message if unsuccessful, and returns the message given. 
+Contains only 1 function, lambda_handler, which takes a boto3 session as an argument. Using a hard-coded list of table names from the Totesys Database (can be done programmatically if need be), for each table in the database, uses the write_csv_to_s3 utility function to write the table data to the specified bucket. The table name is written in as part of the file path to the relevant storage location in the bucket. The function logs a success message if successful, or logs an error message if unsuccessful, and returns the message given. 
 
 #### utils
 The utils file contains all of the utility functions needed to run the code. It contains 4 functions; sql_security, convert_table_to_dict, write_csv_to_s3 and update_data_in_bucket.
 
-The function sql_security takes a table name as an argument. It then connects to the Totesys database using the connect_to_db function, and selects all the table names from the database. As pg8000 attaches many other methods here, the table names are then filtered to give only the wanted values. If the entered table name is in the list of programatically generated table names, the function returns the table name. If not, the function returns a DatabaseError.
+The function sql_security takes a table name as an argument. It then connects to the Totesys database using the connect_to_db function, and selects all the table names from the database. As pg8000 attaches many other methods here, the table names are then filtered to give only the wanted values. If the entered table name is in the list of programmatically generated table names, the function returns the table name. If not, the function returns a DatabaseError.
 
-The function convert_table_to_dict takes a table name as argument. It first uses sql_security to check if this table name is secure. It the connects to the Totesys database using the connect_to_db function, and runs an sql query to select all data from the table specified as the argument. It zips and collects the data headers and returns the info as a list of dicts. The function throws a DatabaseError if that table name is not accessable in the database.
+The function convert_table_to_dict takes a table name as argument. It first uses sql_security to check if this table name is secure. It the connects to the Totesys database using the connect_to_db function, and runs an sql query to select all data from the table specified as the argument. It zips and collects the data headers and returns the info as a list of dicts. The function throws a DatabaseError if that table name is not accessible in the database.
 
 The function write_csv_to_s3 takes a session, data to be written, bucket name and key (file path to data) as arguments. It uses the wrangler module and to_csv inbuilt functions to write the given data to the specified s3 bucket. The data is converted to a pandas dataframe before entry, and the bucket name and key provide the file path to the stored data. Returns a success message dict on successful write, throws a ClientError and logs the error on a failure.
 
@@ -43,7 +43,7 @@ The function update_data_in_bucket takes a table name as an argument. Reads a pr
 #### Utils
 Contains 3 functions; read_latest_changes, get_data_from_ingestion_bucket, and write_parquet_data_to_s3. The function write_parquet_data_to_s3 is imported to the handler.py file, read_latest_changes is imported to both handler.py and transform_funcs.py, and get_data_from_ingestion_bucket is imported just to transform_funcs.py.
 
-The read_latest_changes function takes a boto3 client as an argument, and gets a list of the keys from the boto3 client s3 bucket that are most recently updated. It returns a dictionary with a success message, timestamp and retrieved list of files. If a ClientError is thrown during thr process, the function returns a dictionary with a failure message.
+The read_latest_changes function takes a boto3 client as an argument, and gets a list of the keys from the boto3 client s3 bucket that are most recently updated. It returns a dictionary with a success message, timestamp and retrieved list of files. If a ClientError is thrown during the process, the function returns a dictionary with a failure message.
 
 The get_data_from_ingestion_bucket function reads the csv data from the s3 ingestion zone and converts it into a pandas dataframe. The function takes 3 arguments; key, filename and a boto3 session. The boto3 session determines which s3 to read from, and the key and filename determine which file in the s3 to read. The function returns a dictionary containing a success message and the dataframe on a success, or returns a dictionary containing a failure message and error response on either a CLientError or NoFilesFound error.
 
@@ -64,36 +64,51 @@ Contains a single function, get_secret. Uses AWS IAM roles to access the AWS Sec
 Uses the get_secret function from credentials_manager.py to access the Secret Values for the Warehouse database, and forms a pg8000 connection to that database with the connect_to_db function. This function returns the Connection.
 
 #### utils
-Contains 5 functions; sql_security, get_latest_processed_file_list, get_data_from_processed_zone, get_insert_query and insert_data_into_data_warehouse. 
+Contains 5 functions; sql_security, get_latest_processed_file_list, get_data_from_processed_zone, get_insert_query and insert_data_into_data_warehouse.
+
+The sql_security function works in the same way as in the extract lambda. It takes a table name as an argument and then connects to the data warehouse database using the connect_to_db function, and selects all the table names from the database. As pg8000 attaches many other methods here, the table names are then filtered to give only the wanted values. If the entered table name is in the list of programmatically generated table names, the function returns the table name. If not, the function returns a DatabaseError.
+
+The get_latest_processed_file_list function takes a Boto3 client as an argument and an option timestamp argument. If a timestamp is not passed into the function, it reads the data in the last_ran_at.csv in the S3 ingestion bucket and sets the timestamp based on the last ran timestamp. The function then attempts to get a list of files in the processed bucket and filters the list either by the timestamp (new records) or from the original data dump folder (initial extract). The list of files is returned in a dictionary, along with confirmation that the function ran successfully. If a ClientError is raised by list_objects_v2, then an empty list is returned along with confirmation that the function ran unsuccessfully.
+
+The get_data_from_processed_zone function takes a Boto3 client, S3 object key name and bucket name as arguments. It uses the AWS Wrangler library to download a parquet file using the S3 object key name and stores it as a pandas dataframe. This is returned in a dictionary along with confirmation that the function ran successfully. If the given file is not found and it raises a Client error, the error message is returned in a dictionary along with confirmation that the function ran unsuccessfully.
+
+The get_insert_query function takes a table name and pandas dataframe as arguments and forms a SQL query which is returned as a string. The function loops through the dataframe and adds a tuple for each row of data to the query string. Finally, any NA values are replaced with null. There is a logical step to insert the column headers if the fact_sales_order table is passed in, otherwise the query omits the column headers.
+
+The insert_data_into_data_warehouse function takes a Boto3 client, S3 object key name and pg8000 connection. It calls the get_data_from_processed_zone function to get a dataframe to use in the rest of the function. If this runs successfully, the function splits the S3 object key to get the table name, passes it into the sql_security function and then runs the get_insert_query to form the query. This is then run using pg8000 and a success message is returned. If there is a database error, the details of the error are returned.
+
+#### handler
+Contains a single function load_lambda_handler. This takes a Boto3 session as an argument, creates an S3 client that is passed into the get_latest_processed_file_list util function. If any files are found, the list of files is looped through and the function attempts to insert the data from each file into the data warehouse using the insert_data_into_data_warehouse function. Finally a success message is displayed confirming how many files were inserted.
+
 
 
 ## Terraform
 The Terraform file contains all the relevant Terraform files to deploy the Lambdas, S3 buckets, Cloudwatch and IAM users required for the project.
 
 ### terraform_alarms
-Contains the cloudwatch logs, metrics and filters to handle any errors thrown by any of the Lambdas. When a single error is given by the code, will send an email update to the given email addresses, alerting them to the specific error.
+Contains the cloudwatch logs, metrics and filters to handle any errors thrown by any of the Lambdas. When a single error is given by the code, will send an email update to the given email addresses, alerting them to the specific error. The treat_missing_data argument is used by each alarm to reset the alarm status when no errors are logged.
 
 ### terraform_events
 Creates the scheduler event which will periodically trigger the extract Lambda function to run every 5 minutes. Also connects the scheduler to the relevant rules to allow the scheduler to trigger the lambda function.
 
 ### terraform_iam
-Creates the extract Lambda role, allowing the Lambda to put objects into the Ingestion Zone S3 bucket. Also creates and attaches the relevant policies and policy documents.
+Creates the extract, transform and load Lambda roles, allowing the Lambda to put objects into and read from the Ingestion Zone and Processed Zone S3 buckets. Also creates and attaches the relevant policies and policy documents.
 
-Additionally, creates and attachs the relevant Cloudwatch policies, such as creating log groups and log streams, between the extract lambda and Cloudwatch.
+Additionally, creates and attaches the relevant Cloudwatch policies, such as creating log groups and log streams, between the extract lambda and Cloudwatch.
 
 Finally, allows the lambda to access the secrets manager, which takes the secret values to allow the code to access the Totesys database in a secure way.
 
+
 ### terraform_lambda
-Creates the extract_lambda function within AWS lambda. Establishes where the extract_lambda pulls it's code from, and the layers available to the lambda. Also establishes where the lambda function should be zipped to, and links the permissions for the extract_lambda to be invoked by eventbridge. Finally, creates an aws wrangler to manage the layers available to the lambda.
+Creates the three lambda functions within AWS lambda. Establishes where the lambda functions pull their code from, and the layers available to the lambdas. Also, establishes where the lambda function should be zipped to, and links the permissions for the extract_lambda to be invoked by eventbridge. Finally, creates a layer for each lambda for the util functions and connects to an aws wrangler layer hosted by AWS to make all of the dependencies available to the lambdas.
 
 ### terraform_main
-Sets up some of the default parameters for terraform, such as the terraform state bucket, the source and version, the aws regions and logs in with the access key and secret access key provided in the locally-saved .env file.
+Sets up some of the default parameters for terraform, such as the terraform state bucket, the source and version, the aws regions. This also sets some default tags for all resources created via terraform.
 
 ### terraform_s3
 Sets up the buckets which will store the data ingested and transformed by the lambdas. 
 
 ### terraform_variable
-Gives access to the environment variables for terraform.
+Gives access to the environment variables for terraform. No longer required - file to be deleted.
 
 ## Test
 Contains the testing for the python code.
@@ -105,7 +120,7 @@ Using pytest fixtures, establishes a mock aws client to test the lambda code.
 Takes an s3_client as an argument. Connects to the mocked boto3 client, enters in some incorrect values and checks for a error message detailing the incorrect bucket name.
 
 #### test_handler_returns_true_message
-Takes an s3_client as an argument. Creates a bucket locally on the mocked boto3 client, and then connects to the bucket with nonesense data. Asserts a successful connection message about writing to the bucket.
+Takes an s3_client as an argument. Creates a bucket locally on the mocked boto3 client, and then connects to the bucket with nonsense data. Asserts a successful connection message about writing to the bucket.
 
 #### test_handler_writes_correct_number_of_files_to_bucket
 Takes an s3_client as an argument. Creates a bucket and writes to it, and then lists the objects inside, asserting the contents of the bucket are the same as the values entered.
@@ -132,7 +147,7 @@ Testing the convert_table_to_dict function. Passes in a dangerous SQL phrase, in
 Testing the write_to_s3 function. Passes in correctly formatted info to a bucket that is just created, and asserts the message confirms the writing has gone through.
 
 #### test_s3_uploads_correct_file_content
-Testing the write_to_s3 function. Checks the content of data uploaded to a fake bucket via a get object command. Asserts the body of the reponse is the same as the data entered.
+Testing the write_to_s3 function. Checks the content of data uploaded to a fake bucket via a get object command. Asserts the body of the response is the same as the data entered.
 
 #### test_write_to_s3_fails_when_no_bucket
 Testing the write_to_s3 function. Asserts an error value when trying to write to a bucket that does not exist.
