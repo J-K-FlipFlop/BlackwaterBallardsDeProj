@@ -373,18 +373,19 @@ def convert_purchase_order(client, session):
 
 def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
     response = read_latest_changes(client)
-    if response["timestamp"] != "original_data_dump":
-        output = {"status": "failure", "message": "dim date already set"}
-        return output
+    # if response["timestamp"] != "original_data_dump":
+    #     output = {"status": "failure", "message": "dim date already set"}
+    #     return output
     try:
         df = pd.DataFrame({"date_id": pd.date_range(start, end)})
         df["year"] = df.date_id.dt.year
         df["month"] = df.date_id.dt.month
         df["day"] = df.date_id.dt.day
-        df["day_of_week"] = df.date_id.dt.day_of_week
+        df["day_of_week"] = df.date_id.dt.day_of_week + 1
         df["day_name"] = df.date_id.dt.day_name()
         df["month_name"] = df.date_id.dt.month_name()
         df["quarter"] = df.date_id.dt.quarter
+        df["date_id"] = pd.to_datetime(df["date_id"]).dt.date
         output = {"status": "success", "data": df}
     except:
         output = {"failed": "success", "message": "something has gone horrifically wrong, check this"}
