@@ -190,6 +190,7 @@ class TestLoadLambda:
         )
         result = conn.run("SELECT * FROM dim_currency;")
         conn.close()
+        print(result)
         assert result[0][0] == 1
         assert result[1][1] == "USD"
         assert result[2][2] == "Euros"
@@ -222,5 +223,6 @@ class TestLoadLambda:
         )
         result = conn.run("SELECT * FROM dim_location;")
         conn.close()
+        print (result)
         assert result[0][3] == "Avon"
         assert result[29][6] == "Falkland Islands (Malvinas)"
