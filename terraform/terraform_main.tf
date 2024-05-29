@@ -13,7 +13,7 @@ terraform {
 }
 
 provider "aws" {
-  region     = "eu-west-2"
+  region = "eu-west-2"
   # access_key = local.envs["aws_access_key_id"]
   # secret_key = local.envs["aws_secret_access_key"]
   default_tags {
