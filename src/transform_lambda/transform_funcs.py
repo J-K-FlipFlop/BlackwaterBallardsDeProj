@@ -82,7 +82,7 @@ def convert_staff(client, session):
     filename1 = "staff.csv"
     filename2 = "department.csv"
 
-    response_staff = get_data_from_ingestion_bucket(key, filename1, session, update=False)
+    response_staff = get_data_from_ingestion_bucket(key, filename1, session)
 
     # if filename2 not in response1["file_list"]:
     #     update = False
