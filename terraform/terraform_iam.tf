@@ -35,7 +35,7 @@ resource "aws_iam_role_policy_attachment" "attach_read_write_policy_to_extract_l
 data "aws_iam_policy_document" "set_alarm_status_extract" {
   statement {
     actions   = ["cloudwatch:SetAlarmState"]
-    resources = ["${aws_cloudwatch_metric_alarm.extract_lambda_errors_alarm.arn}/*"]
+    resources = ["*"]
   }
 }
 
@@ -194,7 +194,7 @@ resource "aws_iam_role_policy_attachment" "attach_lambda_access_secrets_to_trans
 data "aws_iam_policy_document" "set_alarm_status_transform" {
   statement {
     actions   = ["cloudwatch:SetAlarmState"]
-    resources = ["${aws_cloudwatch_metric_alarm.transform_lambda_errors_alarm.arn}/*"]
+    resources = ["*"]
   }
 }
 
@@ -282,7 +282,7 @@ resource "aws_iam_role_policy_attachment" "attach_read_ingestion_zone_policy_to_
 data "aws_iam_policy_document" "set_alarm_status_load" {
   statement {
     actions   = ["cloudwatch:SetAlarmState"]
-    resources = ["${aws_cloudwatch_metric_alarm.load_lambda_errors_alarm.arn}/*"]
+    resources = ["*"]
   }
 }
 
