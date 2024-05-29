@@ -11,7 +11,7 @@ data "aws_iam_policy_document" "extract_lambda_trust_policy" {
       type        = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
-    actions = ["sts:AssumeRole", "cloudwatch:SetAlarmState"]
+    actions = ["sts:AssumeRole"]
   }
 }
 
@@ -32,22 +32,22 @@ resource "aws_iam_role_policy_attachment" "attach_read_write_policy_to_extract_l
   policy_arn = aws_iam_policy.read_write_policy_ingestion_zone.arn
 }
 
-# data "aws_iam_policy_document" "set_alarm_status_extract" {
-#   statement {
-#     actions   = ["cloudwatch:SetAlarmState"]
-#     resources = ["*"]
-#   }
-# }
+data "aws_iam_policy_document" "set_alarm_status_extract" {
+  statement {
+    actions   = ["cloudwatch:SetAlarmState"]
+    resources = ["*"]
+  }
+}
 
-# resource "aws_iam_policy" "set_alarm_status_extract_policy" {
-#   name   = "set_alarm_status_extract_policy"
-#   policy = data.aws_iam_policy_document.set_alarm_status_extract.json
-# }
+resource "aws_iam_policy" "set_alarm_status_extract_policy" {
+  name   = "set_alarm_status_extract_policy"
+  policy = data.aws_iam_policy_document.set_alarm_status_extract.json
+}
 
-# resource "aws_iam_role_policy_attachment" "attach_set_alarm_status_policy_to_extract_lambda" {
-#   role       = aws_iam_role.extract_lambda_role.name
-#   policy_arn = aws_iam_policy.set_alarm_status_extract_policy.arn
-# }
+resource "aws_iam_role_policy_attachment" "attach_set_alarm_status_policy_to_extract_lambda" {
+  role       = aws_iam_role.extract_lambda_role.name
+  policy_arn = aws_iam_policy.set_alarm_status_extract_policy.arn
+}
 
 data "aws_iam_policy_document" "extract_lambda_cloudwatch" {
   statement {
@@ -104,7 +104,7 @@ data "aws_iam_policy_document" "transform_lambda_trust_policy" {
       type        = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
-    actions = ["sts:AssumeRole", "cloudwatch:SetAlarmState"]
+    actions = ["sts:AssumeRole"]
   }
 }
 
@@ -191,22 +191,22 @@ resource "aws_iam_role_policy_attachment" "attach_lambda_access_secrets_to_trans
   policy_arn = aws_iam_policy.lambda_access_secrets_policy.arn
 }
 
-# data "aws_iam_policy_document" "set_alarm_status_transform" {
-#   statement {
-#     actions   = ["cloudwatch:SetAlarmState"]
-#     resources = ["*"]
-#   }
-# }
+data "aws_iam_policy_document" "set_alarm_status_transform" {
+  statement {
+    actions   = ["cloudwatch:SetAlarmState"]
+    resources = ["*"]
+  }
+}
 
-# resource "aws_iam_policy" "set_alarm_status_transform_policy" {
-#   name   = "set_alarm_status_transform_policy"
-#   policy = data.aws_iam_policy_document.set_alarm_status_transform.json
-# }
+resource "aws_iam_policy" "set_alarm_status_transform_policy" {
+  name   = "set_alarm_status_transform_policy"
+  policy = data.aws_iam_policy_document.set_alarm_status_transform.json
+}
 
-# resource "aws_iam_role_policy_attachment" "attach_set_alarm_status_policy_to_transform_lambda" {
-#   role       = aws_iam_role.transform_lambda_role.name
-#   policy_arn = aws_iam_policy.set_alarm_status_transform_policy.arn
-# }
+resource "aws_iam_role_policy_attachment" "attach_set_alarm_status_policy_to_transform_lambda" {
+  role       = aws_iam_role.transform_lambda_role.name
+  policy_arn = aws_iam_policy.set_alarm_status_transform_policy.arn
+}
 
 
 # Load Lambda IAM code
@@ -222,7 +222,7 @@ data "aws_iam_policy_document" "load_lambda_trust_policy" {
       type        = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
-    actions = ["sts:AssumeRole", "cloudwatch:SetAlarmState"]
+    actions = ["sts:AssumeRole"]
   }
 }
 
@@ -279,19 +279,19 @@ resource "aws_iam_role_policy_attachment" "attach_read_ingestion_zone_policy_to_
 
 ##Policy to allow ingestion bucket to access lambda
 
-# data "aws_iam_policy_document" "set_alarm_status_load" {
-#   statement {
-#     actions   = ["cloudwatch:SetAlarmState"]
-#     resources = ["*"]
-#   }
-# }
+data "aws_iam_policy_document" "set_alarm_status_load" {
+  statement {
+    actions   = ["cloudwatch:SetAlarmState"]
+    resources = ["*"]
+  }
+}
 
-# resource "aws_iam_policy" "set_alarm_status_load_policy" {
-#   name   = "set_alarm_status_load_policy"
-#   policy = data.aws_iam_policy_document.set_alarm_status_load.json
-# }
+resource "aws_iam_policy" "set_alarm_status_load_policy" {
+  name   = "set_alarm_status_load_policy"
+  policy = data.aws_iam_policy_document.set_alarm_status_load.json
+}
 
-# resource "aws_iam_role_policy_attachment" "attach_set_alarm_status_policy_to_load_lambda" {
-#   role       = aws_iam_role.load_lambda_role.name
-#   policy_arn = aws_iam_policy.set_alarm_status_load_policy.arn
-# }
+resource "aws_iam_role_policy_attachment" "attach_set_alarm_status_policy_to_load_lambda" {
+  role       = aws_iam_role.load_lambda_role.name
+  policy_arn = aws_iam_policy.set_alarm_status_load_policy.arn
+}

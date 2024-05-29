@@ -6,7 +6,7 @@ from src.transform_lambda.transform_funcs import (
     convert_sales_order,
     convert_staff,
     create_dim_dates,
-    convert_purchase_order
+    convert_purchase_order,
 )
 from src.transform_lambda.utils import (
     write_parquet_data_to_s3,
@@ -14,27 +14,15 @@ from src.transform_lambda.utils import (
 )
 import boto3
 import logging
-from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
-    session = boto3.session.Session(region_name='eu-west-2')
+    session = boto3.session.Session(region_name="eu-west-2")
     client = session.client("s3")
-    try:
-        cw_client = boto3.client('cloudwatch', region_name='eu-west-2')
-        response = cw_client.set_alarm_state(
-            AlarmName='AlertTransformLambdaErrors',
-            StateValue='OK',
-            StateReason='Reset alarm prior to running transform lambda'
-        )
-        logger.info(response)
-    except ClientError as e:
-        response = e.response
-        logger.error(response)
-    
+
     curr = convert_currency(client, session)
     cp = convert_counterparty(client, session)
     des = convert_design(client, session)
