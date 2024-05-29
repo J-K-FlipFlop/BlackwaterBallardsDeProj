@@ -33,13 +33,13 @@ class TestConvertSales:
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         key2 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at_99/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         
         result = convert_sales_order(s3_client, session)
         assert result["status"] == "success"
         assert isinstance(result["data"], pd.DataFrame)
-        column_names = ['sales_record_id', 'sales_order_id', 'created_date', 'created_time', 'last_updated_date', 'last_updated_time', 'sales_staff_id', 'counterparty_id', 'units_sold', 'unit_price', 'currency_id', 'design_id', 'agreed_payment_date', 'agreed_delivery_date', 'agreed_delivery_location_id']
+        column_names = ['sales_order_id', 'created_date', 'created_time', 'last_updated_date', 'last_updated_time', 'sales_staff_id', 'counterparty_id', 'units_sold', 'unit_price', 'currency_id', 'design_id', 'agreed_payment_date', 'agreed_delivery_date', 'agreed_delivery_location_id']
         for column in column_names:
             assert column in result["data"].columns
         removed_columns = ['created_at', 'last_updated']
@@ -61,7 +61,7 @@ class TestConvertSales:
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         key2 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at_99/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         
         result = convert_sales_order(s3_client, session)
@@ -95,7 +95,7 @@ class TestConvertSales:
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         key2 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
+        filename2 = f"test/data/last_ran_at_99/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = convert_sales_order(s3_client, session)
         assert result['status'] == "failure"
