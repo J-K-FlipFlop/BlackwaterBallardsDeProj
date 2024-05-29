@@ -1,33 +1,189 @@
 Total revenue - Sum of units_sold multiplied by unit_price,
 with possible need for conversion based on currency_id
 
+-- SELECT SUM(units_sold * unit_price) FROM fact_sales_order;
+^^^gives a single value?
+
 Revenue per sale - units_sold multiplied by unit_price, 
 accounting for currency_id conversion
+
+-- SELECT sales_record_id, units_sold * unit_price AS revenue_from_sale FROM fact_sales_order;
+^^^ this is NOT weighted by currency which is bad
+
+£ -> $ = * 1.27
+£ -> Euro = * 1.17
+
+Therefore:
+-- SELECT design_id, CASE
+                        WHEN currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue
+                    FROM fact_sales_order
+                    GROUP BY design_id, currency_id
+                    ORDER BY Revenue DESC
+                    LIMIT 10;
+^^^should weight values by currency
 
 Revenue per location - Sum of revenue per sale BY a location
 variable, I'd say by country as others would be way too
 specific. This is done via agreed_delivery_location_id
 
+-- SELECT dim_location.country, CASE
+                        WHEN currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue
+                    FROM fact_sales_order
+                    JOIN dim_location
+                    ON fact_sales_order.agreed_delivery_location_id = dim_location.location_id
+                    GROUP BY dim_location.country, currency_id
+                    ORDER BY Revenue DESC;
+
+-----------------------------------------------
+
+-- WITH table_name AS (SELECT dim_location.country, CASE
+                        WHEN currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue
+                    FROM fact_sales_order
+                    JOIN dim_location
+                    ON fact_sales_order.agreed_delivery_location_id = dim_location.location_id
+                    GROUP BY dim_location.country, currency_id)
+                    SELECT country, SUM(Revenue) AS revenue_country FROM table_name
+                    GROUP BY country
+                    ORDER BY revenue_country DESC
+                    LIMIT 10;
+
+
 Revenue per item - See which items and designs are most 
 popular. Sum of revenue per sale BY design_name. This is
 done via design_id
 
+-- WITH table_name AS (SELECT dim_design.design_name, CASE
+                        WHEN currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue
+                    FROM fact_sales_order
+                    JOIN dim_design
+                    ON fact_sales_order.design_id = dim_design.design_id
+                    GROUP BY dim_design.design_name, currency_id)
+                    SELECT design_name, SUM(Revenue) AS revenue_design FROM table_name
+                    GROUP BY design_name
+                    ORDER BY revenue_design DESC
+                    LIMIT 10;
+
 Most used currency for purchases - Sum of revenue per sale
 BY currency_name, done via currency_id
+
+-- SELECT dim_currency.currency_name, CASE
+                        WHEN fact_sales_order.currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN fact_sales_order.currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue_in_£_equivalent
+                    FROM fact_sales_order
+                    JOIN dim_currency
+                    ON fact_sales_order.currency_id = dim_currency.currency_id
+                    GROUP BY dim_currency.currency_name, fact_sales_order.currency_id
+                    ORDER BY Revenue_in_£_equivalent DESC;
 
 Staff members that secures most revenue - Sum of revenue per sale
 BY first_name + last_name. Done via staff_id
 
+-- WITH table_name AS (SELECT dim_staff.first_name || ' ' || dim_staff.last_name AS name, CASE
+                        WHEN currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue
+                    FROM fact_sales_order
+                    JOIN dim_staff
+                    ON fact_sales_order.sales_staff_id = dim_staff.staff_id
+                    GROUP BY name, currency_id)
+                    SELECT name, SUM(Revenue) AS revenue_per_staff FROM table_name
+                    GROUP BY name
+                    ORDER BY revenue_per_staff DESC
+                    LIMIT 10;
+
+Alternatively, staff member that secures the LEAST revenue:
+
+-- WITH table_name AS (SELECT dim_staff.first_name || ' ' || dim_staff.last_name AS name, CASE
+                        WHEN currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue
+                    FROM fact_sales_order
+                    JOIN dim_staff
+                    ON fact_sales_order.sales_staff_id = dim_staff.staff_id
+                    GROUP BY name, currency_id)
+                    SELECT name, SUM(Revenue) AS revenue_per_staff FROM table_name
+                    GROUP BY name
+                    ORDER BY revenue_per_staff ASC
+                    LIMIT 10;
+
 Location that secures the most revenue - Sum of revenue per sale
 BY dim_staff.location. Done via staff_id
+
+-- WITH table_name AS (SELECT dim_staff.location, CASE
+                        WHEN currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue
+                    FROM fact_sales_order
+                    JOIN dim_staff
+                    ON fact_sales_order.sales_staff_id = dim_staff.staff_id
+                    GROUP BY dim_staff.location, currency_id)
+                    SELECT location, SUM(Revenue) AS revenue_per_location FROM table_name
+                    GROUP BY location
+                    ORDER BY revenue_per_location DESC;
 
 More purchases made on certain days - Sum of revenue per sale
 BY day_name from dim_date, done via date_id
 
+-- WITH table_name AS (SELECT dim_date.day_name, CASE
+                        WHEN currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue
+                    FROM fact_sales_order
+                    JOIN dim_date
+                    ON fact_sales_order.last_updated_date = dim_date.date_id
+                    GROUP BY dim_date.day_name, currency_id)
+                    SELECT day_name, SUM(Revenue) AS revenue_per_day FROM table_name
+                    GROUP BY day_name
+                    ORDER BY revenue_per_day DESC;
+
 More purchases made on certain months - Sum of revenue per sale
 BY month_name from dim_date, done via date_id
 
+-- WITH table_name AS (SELECT dim_date.month_name, CASE
+                        WHEN currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue
+                    FROM fact_sales_order
+                    JOIN dim_date
+                    ON fact_sales_order.last_updated_date = dim_date.date_id
+                    GROUP BY dim_date.month_name, currency_id)
+                    SELECT month_name, SUM(Revenue) AS revenue_per_month FROM table_name
+                    GROUP BY month_name
+                    ORDER BY revenue_per_month DESC;
+
 More purchases made on certain quarters - Sum of revenue per sale
 BY quarter from dim_date, done via date_id
+
+-- WITH table_name AS (SELECT dim_date.quarter, CASE
+                        WHEN currency_id = 2 THEN SUM(units_sold * unit_price / 1.27)
+                        WHEN currency_id = 3 THEN SUM(units_sold * unit_price / 1.17)
+                        ELSE SUM(units_sold * unit_price)
+                    END Revenue
+                    FROM fact_sales_order
+                    JOIN dim_date
+                    ON fact_sales_order.last_updated_date = dim_date.date_id
+                    GROUP BY dim_date.quarter, currency_id)
+                    SELECT quarter, SUM(Revenue) AS revenue_per_quarter FROM table_name
+                    GROUP BY quarter
+                    ORDER BY quarter ASC;
 
 
