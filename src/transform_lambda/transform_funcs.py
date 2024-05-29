@@ -7,7 +7,7 @@ import math
 import pandas as pd
 from src.transform_lambda.utils import (
     read_latest_changes,
-    get_data_from_ingestion_bucket,
+    get_data_from_ingestion_bucket
 )
 
 
@@ -82,7 +82,7 @@ def convert_staff(client, session):
     filename1 = "staff.csv"
     filename2 = "department.csv"
 
-    response_staff = get_data_from_ingestion_bucket(key, filename1, session, update=False)
+    response_staff = get_data_from_ingestion_bucket(key, filename1, session)
 
     # if filename2 not in response1["file_list"]:
     #     update = False
@@ -239,19 +239,19 @@ def convert_sales_order(client, session):
         return response1
     filename_sales = "sales_order.csv"
     response_sales = get_data_from_ingestion_bucket(
-        key, filename_sales, session, update=False
+        key, filename_sales, session
     )
-    print(response1, "<---- RESPONSE1")
+    # print(response1, "<---- RESPONSE1")
     if response_sales["status"] == "success":
         df_sales = response_sales["data"]
         sales_dict = df_sales.to_dict()
     else:
         print(response_sales, "<---- SALES")
         return response_sales
-
+    
     created_date = {}
     created_time = {}
-    record_dict = {}
+
     for key in sales_dict["created_at"]:
         timestamp = sales_dict["created_at"][key]
         splitted = timestamp.split()
@@ -259,7 +259,6 @@ def convert_sales_order(client, session):
         time = splitted[1]
         created_date[key] = date
         created_time[key] = time
-        record_dict[key] = key + 1
 
     last_updated_date = {}
     last_updated_time = {}
@@ -275,7 +274,6 @@ def convert_sales_order(client, session):
     sales_dict["created_time"] = created_time
     sales_dict["last_updated_date"] = last_updated_date
     sales_dict["last_updated_time"] = last_updated_time
-    sales_dict["sales_record_id"] = record_dict
 
     df_sales = pd.DataFrame(sales_dict)
     df_sales = df_sales.drop(["created_at", "last_updated"], axis=1)
@@ -283,7 +281,6 @@ def convert_sales_order(client, session):
     df_sales = df_sales.loc[
         :,
         [
-            "sales_record_id",
             "sales_order_id",
             "created_date",
             "created_time",
@@ -323,7 +320,6 @@ def convert_purchase_order(client, session):
     
     created_date = {}
     created_time = {}
-    record_dict = {}
     for key in purchase_dict["created_at"]:
         timestamp = purchase_dict["created_at"][key]
         splitted = timestamp.split()
@@ -331,7 +327,6 @@ def convert_purchase_order(client, session):
         time = splitted[1]
         created_date[key] = date
         created_time[key] = time
-        record_dict[key] = key + 1
 
     last_updated_date = {}
     last_updated_time = {}
@@ -347,14 +342,12 @@ def convert_purchase_order(client, session):
     purchase_dict["created_time"] = created_time
     purchase_dict["last_updated_date"] = last_updated_date
     purchase_dict["last_updated_time"] = last_updated_time
-    purchase_dict["purchase_record_id"] = record_dict
 
     df_purchase = pd.DataFrame(purchase_dict)
     df_purchase = df_purchase.drop(["created_at", "last_updated"], axis=1)
     df_purchase = df_purchase.loc[
         :,
         [
-            "purchase_record_id",
             "purchase_order_id",
             "created_date",
             "created_time",

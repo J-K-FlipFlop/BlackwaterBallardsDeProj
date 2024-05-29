@@ -93,7 +93,10 @@ def get_data_from_processed_zone(client: boto3.client, pq_key: str) -> dict:
 
 
 def get_insert_query(table_name: str, dataframe: pd.DataFrame):
-    query = f"""INSERT INTO {table_name} VALUES """
+    query = f"""INSERT INTO {table_name} """
+    if table_name == "fact_sales_order":
+        query += "(sales_order_id, created_date, created_time, last_updated_date, last_updated_time, sales_staff_id, counterparty_id, units_sold, unit_price, currency_id, design_id, agreed_payment_date, agreed_delivery_date, agreed_delivery_location_id) "
+    query += "VALUES "
     for _, row in dataframe.iterrows():
         query += f"""{tuple(row.values)}, """
     query = f"""{query[:-2]} RETURNING *;"""
