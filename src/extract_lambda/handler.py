@@ -10,7 +10,7 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-session = boto3.session.Session()
+session = boto3.session.Session(region_name='eu-west-2')
 
 
 def lambda_handler(event, context, session=None):
@@ -32,6 +32,18 @@ def lambda_handler(event, context, session=None):
         "payment_type",
         "transaction",
     ]
+
+    try:
+        client = session.client('cloudwatch')
+        response = client.set_alarm_state(
+            AlarmName='AlertExtractLambdaErrors',
+            StateValue='OK',
+            StateReason='Reset alarm prior to running extract lambda'
+        )
+        logger.info(response)
+    except ClientError as e:
+        logger.error(e.response)
+        response = e.response
 
     time_of_day = datetime.now()
 

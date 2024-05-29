@@ -50,7 +50,7 @@ resource "aws_cloudwatch_log_group" "transform_lamba_logg" {
 resource "aws_cloudwatch_log_metric_filter" "transform_lambda_errors" {
   name           = "TransformLambdaErrors"
   pattern        = "ERROR"
-  log_group_name = aws_cloudwatch_log_group.transform_lamba_logg.name
+  log_group_name = "/aws/lambda/${aws_cloudwatch_log_group.transform_lamba_logg.name}"
   metric_transformation {
     name      = "TransformLambdaErrors"
     namespace = "Transform Errors"
@@ -77,6 +77,11 @@ resource "aws_sns_topic_subscription" "send_transfer_lambda_errors_mike" {
   endpoint  = "mikey.5881@gmail.com"
   topic_arn = aws_sns_topic.transform_lambda_errors.arn
 }
+resource "aws_sns_topic_subscription" "send_extract_lambda_errors_richard" {
+  protocol  = "email"
+  endpoint  = "rpwilding@proton.me"
+  topic_arn = aws_sns_topic.extract_lambda_errors.arn
+}
 # Load lambda filtered metrics and alarms
 
 resource "aws_cloudwatch_log_group" "load_lamba_logg" {
@@ -86,7 +91,7 @@ resource "aws_cloudwatch_log_group" "load_lamba_logg" {
 resource "aws_cloudwatch_log_metric_filter" "load_lambda_errors" {
   name           = "LoadLambdaErrors"
   pattern        = "ERROR"
-  log_group_name = aws_cloudwatch_log_group.load_lamba_logg.name
+  log_group_name = "/aws/lambda/${aws_cloudwatch_log_group.load_lamba_logg.name}"
   metric_transformation {
     name      = "LoadLambdaErrors"
     namespace = "Load Errors"
@@ -112,4 +117,9 @@ resource "aws_sns_topic_subscription" "send_load_lambda_errors_mike" {
   protocol  = "email"
   endpoint  = "mikey.5881@gmail.com"
   topic_arn = aws_sns_topic.load_lambda_errors.arn
+}
+resource "aws_sns_topic_subscription" "send_extract_lambda_errors_richard" {
+  protocol  = "email"
+  endpoint  = "rpwilding@proton.me"
+  topic_arn = aws_sns_topic.extract_lambda_errors.arn
 }
