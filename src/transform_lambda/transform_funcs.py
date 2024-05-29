@@ -7,8 +7,7 @@ import math
 import pandas as pd
 from src.transform_lambda.utils import (
     read_latest_changes,
-    get_data_from_ingestion_bucket,
-    write_csv_to_s3
+    get_data_from_ingestion_bucket
 )
 
 
@@ -261,6 +260,7 @@ def convert_sales_order(client, session):
 
     created_date = {}
     created_time = {}
+
     for key in sales_dict["created_at"]:
         timestamp = sales_dict["created_at"][key]
         splitted = timestamp.split()
@@ -336,7 +336,6 @@ def convert_purchase_order(client, session):
     
     created_date = {}
     created_time = {}
-    record_dict = {}
     for key in purchase_dict["created_at"]:
         timestamp = purchase_dict["created_at"][key]
         splitted = timestamp.split()
@@ -344,7 +343,6 @@ def convert_purchase_order(client, session):
         time = splitted[1]
         created_date[key] = date
         created_time[key] = time
-        record_dict[key] = key + 1
 
     last_updated_date = {}
     last_updated_time = {}
@@ -360,7 +358,6 @@ def convert_purchase_order(client, session):
     purchase_dict["created_time"] = created_time
     purchase_dict["last_updated_date"] = last_updated_date
     purchase_dict["last_updated_time"] = last_updated_time
-    purchase_dict["purchase_record_id"] = record_dict
 
     df_purchase = pd.DataFrame(purchase_dict)
     df_purchase = df_purchase.drop(["created_at", "last_updated"], axis=1)
