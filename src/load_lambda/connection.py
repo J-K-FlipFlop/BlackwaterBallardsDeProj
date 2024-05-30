@@ -11,7 +11,10 @@ port = creds["port"]
 schema = creds["schema"]
 
 
-def connect_to_db():
+def connect_to_db() -> Connection:
+    """Returns a pg8000 database connection using credentials for the Data
+    Warehouse obtained from AWS SecretsManager via the get_secret function"""
+
     return Connection(
         user=user, password=password, database=database, port=port, host=host
     )

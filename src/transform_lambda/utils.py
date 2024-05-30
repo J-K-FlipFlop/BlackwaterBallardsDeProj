@@ -1,15 +1,10 @@
 import boto3
 from botocore.exceptions import ClientError
-from datetime import datetime
 import pandas as pd
 import awswrangler as wr
 from awswrangler.exceptions import NoFilesFound
 
 
-# read from specific s3 bucket (ingestion-zone)
-# find most recent folder
-# read list of files in folder
-# return dictionary containing the list
 def read_latest_changes(client: boto3.client) -> dict:
     """Gets a list of most recently updated keys from S3 ingestion bucket
 
@@ -19,8 +14,10 @@ def read_latest_changes(client: boto3.client) -> dict:
     Returns:
         A dictionary containing the following:
             status: shows whether the function ran successfully
-            timestamp: the datetime that the most recent data was written to the ingestion zone
-            file_list: a list of keys from the most recent folder in the ingestion zone
+            timestamp: the datetime that the most recent data was written to
+            the ingestion zone
+            file_list: a list of keys from the most recent folder in the
+            ingestion zone
     """
     try:
         output = client.list_objects_v2(Bucket="blackwater-ingestion-zone")
@@ -40,12 +37,16 @@ def read_latest_changes(client: boto3.client) -> dict:
 
         if year < 2000:
             file_list = [
-                file["Key"] for file in file_data if "original_data_dump" in file["Key"]
+                file["Key"]
+                for file in file_data
+                if "original_data_dump" in file["Key"]
             ]
             timestamp_filtered = "original_data_dump"
         else:
             file_list = [
-                file["Key"] for file in file_data if timestamp_filtered in file["Key"]
+                file["Key"]
+                for file in file_data
+                if timestamp_filtered in file["Key"]
             ]
 
         return {
@@ -63,13 +64,19 @@ def read_latest_changes(client: boto3.client) -> dict:
 
 
 def get_data_from_ingestion_bucket(
-    key: str, filename: str, session: boto3.session.Session, update=True
+    key: str,
+    filename: str,
+    session: boto3.session.Session,
+    update: bool = True,
 ) -> dict:
-    """Downloads csv data from S3 ingestion bucket and returns a pandas dataframe
+    """Downloads csv data from S3 ingestion bucket and returns a pandas
+    dataframe
 
     Args:
         key: string representing S3 object to be downloaded
         session: Boto3 session
+        update: optional argument that is used to determine if full dataset or
+        just updates are transformed
 
     Returns:
         A dictionary containing the following:
@@ -83,7 +90,6 @@ def get_data_from_ingestion_bucket(
         path = f"s3://blackwater-ingestion-zone/ingested_data/original_data_dump/{filename}"
     try:
         df = wr.s3.read_csv(path=path, boto3_session=session)
-        # print(df.columns)
         return {"status": "success", "data": df}
     except ClientError as ce:
         return {"status": "failure", "message": ce.response}
@@ -95,7 +101,7 @@ def write_parquet_data_to_s3(
     data: pd.DataFrame,
     table_name: str,
     session: boto3.session.Session,
-    timestamp=None,
+    timestamp: str = None,
 ) -> dict:
     """Writes a pandas dataframe to S3 processed bucket in parquet format
 
@@ -103,7 +109,8 @@ def write_parquet_data_to_s3(
         data: a pandas dataframe
         table_name: name of table to be written
         session: Boto3 session
-        timestamp: optional, passed into function so all files transformed by function are stored in same S3 folder
+        timestamp: optional, passed into function so all files transformed by
+        function are stored in same S3 folder
 
     Returns:
         A dictionary containing the following:
@@ -131,15 +138,3 @@ def write_parquet_data_to_s3(
             "status": "failure",
             "message": f"Data is in wrong format {str(type(data))} is not a pandas dataframe",
         }
-
-
-"""
-{'columns': ['counterparty_id', 'counterparty_legal_name', 'legal_address_id', 'commercial_contact', 'delivery_contact', 'created_at', 'last_updated'], 
-'data': [[1, 'Fahey and Sons', 15, 'Micheal Toy', 'Mrs. Lucy Runolfsdottir', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563'], 
-[2, 'Leannon, Predovic and Morar', 28, 'Melba Sanford', 'Jean Hane III', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563'], 
-[3, 'Armstrong Inc', 2, 'Jane Wiza', 'Myra Kovacek', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563'], 
-[4, 'Kohler Inc', 29, 'Taylor Haag', 'Alfredo Cassin II', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563'], 
-[5, 'Frami, Yundt and Macejkovic', 22, 'Homer Mitchell', 'Ivan Balistreri', '2022-11-03 14:20:51.563', '2022-11-03 14:20:51.563']]}
-"""
-client = boto3.client("s3")
-read_latest_changes(client)
