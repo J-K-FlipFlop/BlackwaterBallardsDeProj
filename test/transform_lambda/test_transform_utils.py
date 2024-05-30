@@ -9,7 +9,6 @@ from src.transform_lambda.utils import (
     get_data_from_ingestion_bucket,
     write_parquet_data_to_s3,
 )
-from botocore.exceptions import ClientError
 
 
 @pytest.fixture(scope="function")
@@ -37,7 +36,7 @@ class TestReadLatestChanges:
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         key2 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
+        filename2 = "test/data/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = read_latest_changes(s3_client)
         assert result["timestamp"] == timestamp
@@ -60,7 +59,7 @@ class TestReadLatestChanges:
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key2)
         key3 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
+        filename2 = "test/data/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key3)
         result = read_latest_changes(s3_client)
         assert result["timestamp"] == timestamp
@@ -69,7 +68,7 @@ class TestReadLatestChanges:
             "ingested_data/2024-05-20 12:10:03.998128/currency.csv",
         ]
 
-    def test_function_returns_latest_filename_if_bucket_contains_multiple_folders(
+    def test_returns_latest_filename_if_bucket_contains_multiple_folders(
         self, s3_client
     ):
         timestamp = "2024-05-20 12:10:03.998128"
@@ -85,7 +84,7 @@ class TestReadLatestChanges:
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key2)
         key3 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
+        filename2 = "test/data/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key3)
         result = read_latest_changes(s3_client)
         assert result["timestamp"] == timestamp
@@ -106,7 +105,7 @@ class TestGetFileContents:
         key = f"ingested_data/{timestamp}/staff.csv"
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         key2 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
+        filename2 = "test/data/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -127,7 +126,7 @@ class TestGetFileContents:
         key = f"ingested_data/{timestamp}/staff.csv"
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         key2 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
+        filename2 = "test/data/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
@@ -155,11 +154,13 @@ class TestGetFileContents:
             aws_access_key_id="test", aws_secret_access_key="test"
         )
         input_key = "ingested_data/2024-05-20 12:10:03.998128/staff.csv"
-        result = get_data_from_ingestion_bucket(input_key, session)
+        result = get_data_from_ingestion_bucket(
+            input_key, "staff.csv", session
+        )
         assert result["status"] == "failure"
         assert result["message"]["Error"]["Code"] == "NoSuchBucket"
 
-    def test_missing_missing_bucket_raises_client_error(self, s3_client):
+    def test_missing_missing_file_raises_client_error(self, s3_client):
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
         )
@@ -269,7 +270,6 @@ class TestWriteParquet:
         session = boto3.session.Session(
             aws_access_key_id="test", aws_secret_access_key="test"
         )
-        bucket = "blackwater-processed-zone"
         input_table = "staff"
         timestamp = "2024-05-20 12:10:03.998128"
         dataframe = pd.read_csv("test/data/dummy_csv.csv")

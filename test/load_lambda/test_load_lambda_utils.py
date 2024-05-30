@@ -10,7 +10,6 @@ from src.load_lambda.utils import (
     get_insert_query,
 )
 from test_warehouse_db import seed_warehouse_db, root_warehouse_db
-from pg8000.exceptions import DatabaseError
 
 
 @pytest.fixture(scope="function")

@@ -9,7 +9,6 @@ resource "aws_cloudwatch_log_metric_filter" "extract_lambda_errors" {
   }
 }
 
-
 resource "aws_cloudwatch_metric_alarm" "extract_lambda_errors_alarm" {
   alarm_name          = "AlertExtractLambdaErrors"
   comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -42,7 +41,6 @@ resource "aws_sns_topic_subscription" "send_extract_lambda_errors_mike" {
   topic_arn = aws_sns_topic.extract_lambda_errors.arn
 }
 
-## Transform lambda filtered metrics and alarms
 
 resource "aws_cloudwatch_log_group" "transform_lamba_logg" {
   name = aws_lambda_function.transform_lambda.function_name
@@ -84,7 +82,7 @@ resource "aws_sns_topic_subscription" "send_transform_lambda_errors_richard" {
   endpoint  = "rpwilding@proton.me"
   topic_arn = aws_sns_topic.transform_lambda_errors.arn
 }
-# Load lambda filtered metrics and alarms
+
 
 resource "aws_cloudwatch_log_group" "load_lamba_logg" {
   name = aws_lambda_function.load_lambda.function_name

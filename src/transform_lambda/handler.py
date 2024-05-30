@@ -37,7 +37,6 @@ def lambda_handler(event, context) -> None:
     loc = convert_location(client, session)
     stf = convert_staff(client, session)
     sales = convert_sales_order(client, session)
-    purchases = convert_purchase_order(client, session)
     date = create_dim_dates(client)
 
     counter = 0

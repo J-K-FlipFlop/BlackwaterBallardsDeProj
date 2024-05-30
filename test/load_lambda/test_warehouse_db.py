@@ -1,9 +1,6 @@
-from pprint import pprint as pp
 from pg8000.native import Connection, DatabaseError
 import os
-
 from dotenv import load_dotenv
-from botocore.exceptions import ClientError
 import pytest
 from src.load_lambda.utils import insert_data_into_data_warehouse
 from moto import mock_aws
@@ -13,12 +10,12 @@ load_dotenv()
 
 try:
     psql_user = os.environ["psql_username"]
-except:
+except KeyError:
     psql_user = os.getenv("psql_username")
 
 try:
     psql_password = os.environ["psql_password"]
-except:
+except KeyError:
     psql_password = os.getenv("psql_password")
 
 
@@ -53,9 +50,6 @@ def root_warehouse_db() -> Connection:
         host="localhost",
     )
     return conn
-
-
-# table_name:str, data,
 
 
 def seed_warehouse_db(connection: Connection):
@@ -146,14 +140,6 @@ def seed_warehouse_db(connection: Connection):
             agreed_delivery_locatiion_id INT NOT NULL REFERENCES dim_location(location_id)
             );"""
     )
-    # seeding the database in the right way
-    # test_result = conn.run(f"SELECT column_name FROM information_schema.columns where table_name = '{table_name}';")
-
-
-# connection.run(f"INSERT INTO {table_name} VALUES ({data})")
-# result = connection.run(f"SELECT * FROM {table_name}")
-# connection.close()
-# return result
 
 
 class TestLoadLambda:
@@ -176,7 +162,7 @@ class TestLoadLambda:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         key2 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
+        filename2 = "test/data/last_ran_at.csv"
         s3_client.upload_file(
             Filename=filename2, Bucket="blackwater-ingestion-zone", Key=key2
         )
@@ -190,7 +176,6 @@ class TestLoadLambda:
         )
         result = conn.run("SELECT * FROM dim_currency;")
         conn.close()
-        print(result)
         assert result[0][0] == 1
         assert result[1][1] == "USD"
         assert result[2][2] == "Euros"
@@ -209,7 +194,7 @@ class TestLoadLambda:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         key2 = "last_ran_at.csv"
-        filename2 = f"test/data/last_ran_at.csv"
+        filename2 = "test/data/last_ran_at.csv"
         s3_client.upload_file(
             Filename=filename2, Bucket="blackwater-ingestion-zone", Key=key2
         )
@@ -223,6 +208,5 @@ class TestLoadLambda:
         )
         result = conn.run("SELECT * FROM dim_location;")
         conn.close()
-        print(result)
         assert result[0][3] == "Avon"
         assert result[29][6] == "Falkland Islands (Malvinas)"

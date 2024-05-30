@@ -1,4 +1,3 @@
-# Extract Lambda IAM code
 resource "aws_iam_role" "extract_lambda_role" {
   name               = "extract-lambda"
   assume_role_policy = data.aws_iam_policy_document.extract_lambda_trust_policy.json
@@ -91,7 +90,6 @@ resource "aws_iam_role_policy_attachment" "attach_lambda_access_secrets_to_extra
 }
 
 
-# Transform Lambda IAM code
 resource "aws_iam_role" "transform_lambda_role" {
   name               = "transform-lambda"
   assume_role_policy = data.aws_iam_policy_document.transform_lambda_trust_policy.json
@@ -110,7 +108,6 @@ data "aws_iam_policy_document" "transform_lambda_trust_policy" {
 
 data "aws_iam_policy_document" "read_from_ingestion_zone" {
   statement {
-    # actions   = ["s3:GetObject", "s3:ListBucket", "s3:*"]
     actions   = ["s3:*"]
     resources = ["*"]
   }
@@ -209,7 +206,6 @@ resource "aws_iam_role_policy_attachment" "attach_set_alarm_status_policy_to_tra
 }
 
 
-# Load Lambda IAM code
 resource "aws_iam_role" "load_lambda_role" {
   name               = "load-lambda"
   assume_role_policy = data.aws_iam_policy_document.load_lambda_trust_policy.json
@@ -277,7 +273,6 @@ resource "aws_iam_role_policy_attachment" "attach_read_ingestion_zone_policy_to_
   policy_arn = aws_iam_policy.read_policy_ingestion_zone.arn
 }
 
-##Policy to allow ingestion bucket to access lambda
 
 data "aws_iam_policy_document" "set_alarm_status_load" {
   statement {
