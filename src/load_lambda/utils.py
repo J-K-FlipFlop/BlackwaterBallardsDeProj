@@ -148,7 +148,6 @@ def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connectio
 # df.to_parquet('currency.parquet', index=False)
 
 
-
 # df = wr.s3.read_parquet(path=f"s3://blackwater-processed-zone/original_data_dump/dim_date.parquet")
 # print(df)
 # output_list = ''
@@ -158,5 +157,3 @@ def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connectio
 
 # output = output_list.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
 # pp(output.split(';'))
-
-

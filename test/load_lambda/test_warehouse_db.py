@@ -223,6 +223,6 @@ class TestLoadLambda:
         )
         result = conn.run("SELECT * FROM dim_location;")
         conn.close()
-        print (result)
+        print(result)
         assert result[0][3] == "Avon"
         assert result[29][6] == "Falkland Islands (Malvinas)"
