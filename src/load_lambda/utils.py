@@ -1,35 +1,30 @@
 from src.load_lambda.connection import connect_to_db
 from botocore.exceptions import ClientError
 from pg8000.exceptions import DatabaseError
-from datetime import datetime
-from pprint import pprint as pp
 import boto3
 import logging
 import pandas as pd
 import re
 import awswrangler as wr
-from numpy import nan
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-"""Pseudocode
-get data from s3 function
-    all data in processed bucket in parquet format
-    pass table_name.parquet as argument to get data from bucket,
-    using get_object, one by one. Takes table_name, which references
-    filepath of the data in the processed zone
 
-insert data into warehouse
-    want to load data one by one, so get parquet data and 
-    immediately INSERT INTO warehouse, using table_name as the 
-    name of the table. can INSERT directly, using read_parquet
-    functionality
-"""
+def sql_security(table: str) -> str:
+    """Checks if the table passed exists in the Data Warehouse
 
+    Args:
+        table: table name as a string
 
-def sql_security(table):
+    Returns:
+        table: table name as a string, if it exists in the totesys database
+
+    Raises:
+        DatabaseError: if passed table name is not in the totesys database
+    """
+
     conn = connect_to_db()
     table_names_unfiltered = conn.run(
         "SELECT TABLE_NAME FROM postgres.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
@@ -49,8 +44,21 @@ def sql_security(table):
 def get_latest_processed_file_list(
     client: boto3.client, timestamp_filtered: str = None
 ) -> dict:
+    """Gets a list of most recently updated keys from S3 processed bucket
+
+    Args:
+        client: S3 Boto3 client
+        timestamp_filtered: datetime timestamp stored as a string
+
+    Returns:
+        A dictionary containing the following:
+            status: shows whether the function ran successfully
+            file_list: a list of keys from the most recent folder in the
+            processed zone
+    """
+
     bucket = "blackwater-processed-zone"
-    runtime_key = f"last_ran_at.csv"
+    runtime_key = "last_ran_at.csv"
     if not timestamp_filtered:
         get_previous_runtime = client.get_object(
             Bucket="blackwater-ingestion-zone", Key=runtime_key
@@ -83,6 +91,18 @@ def get_latest_processed_file_list(
 
 
 def get_data_from_processed_zone(client: boto3.client, pq_key: str) -> dict:
+    """Returns parquet data from S3 processed zone as a pandas dataframe
+
+    Args:
+        client: Boto3 client
+        pq_key: the S3 object key name of the parquet file to be read
+
+    Returns:
+        A dictionary containing:
+            A status message
+            Data as a pandas dataframe (if successful)
+            Error message (if unsuccessful)
+    """
     bucket = "blackwater-processed-zone"
     try:
         df = wr.s3.read_parquet(path=f"s3://{bucket}/{pq_key}")
@@ -92,7 +112,18 @@ def get_data_from_processed_zone(client: boto3.client, pq_key: str) -> dict:
         return {"status": "failure", "message": c.response["Error"]["Message"]}
 
 
-def get_insert_query(table_name: str, dataframe: pd.DataFrame):
+def get_insert_query(table_name: str, dataframe: pd.DataFrame) -> str:
+    """Returns a string containing a SQL INSERT statement
+
+    Args:
+        table_name: string containing a SQL table name
+        dataframe: a correctly structured pandas dataframe containing data
+        obtained from a parquet file
+
+    Returns:
+        A query string containing all values from dataframe as tuples
+    """
+
     query = f"""INSERT INTO {table_name} """
     if table_name == "fact_sales_order":
         query += "(sales_order_id, created_date, created_time, last_updated_date, last_updated_time, sales_staff_id, counterparty_id, units_sold, unit_price, currency_id, design_id, agreed_payment_date, agreed_delivery_date, agreed_delivery_location_id) "
@@ -100,21 +131,35 @@ def get_insert_query(table_name: str, dataframe: pd.DataFrame):
     for _, row in dataframe.iterrows():
         query += f"""{tuple(row.values)}, """
     query = f"""{query[:-2]} RETURNING *;"""
-    logger.info(query)
     query = query.replace("<NA>", "null")
-    # if table_name == 'dim_location':
-    # query = query.replace("le's", "les").replace('"', "'")
-    logger.info(query)
     return query
 
 
-def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connection):
+def insert_data_into_data_warehouse(
+    client: boto3.client, pq_key: str, connection
+) -> dict:
+    """Inserts data into data warehouse
+
+    Args:
+        client: Boto3 client
+        pq_key: the S3 object key name of the parquet file to be read
+        connection: pg8000 connection
+
+    Returns:
+        A dictionary containing the following:
+            status message
+            table name showing the table data was attempted to be inserted into
+            error message (if unsuccessful)
+    """
+
     data = get_data_from_processed_zone(client, pq_key)
     if data["status"] == "success":
         try:
             table_name = pq_key.split("/")[-1][:-8]
             table_name = sql_security(table_name)
-            query = get_insert_query(table_name=table_name, dataframe=data["data"])
+            query = get_insert_query(
+                table_name=table_name, dataframe=data["data"]
+            )
             connection.run(query)
             return {
                 "status": "success",
@@ -128,35 +173,5 @@ def insert_data_into_data_warehouse(client: boto3.client, pq_key: str, connectio
                 "message": "Data was not added to data warehouse",
                 "Error Message": e,
             }
-        # finally:
-        #     connection.close()
     else:
         return data
-
-
-# dim_currency_dict = [{"currency_code": 'GBP',
-#                      "currency_name": 'Pound Sterling'},
-#                      {"currency_code": 'USD',
-#                      "currency_name": 'US Dollar'},]
-
-# df = pd.DataFrame(data=dim_currency_dict)
-# query = "INSERT INTO dim_currency VALUES "
-# for i, row in df.iterrows():
-#     print(tuple(row.values))
-#   row[j] for j in range(len(row)))
-# print(df)
-# df.to_parquet('currency.parquet', index=False)
-
-
-
-# df = wr.s3.read_parquet(path=f"s3://blackwater-processed-zone/original_data_dump/dim_date.parquet")
-# print(df)
-# output_list = ''
-# for _, row in df.iterrows():
-#     output_list += f"{tuple(row.values)};"
-# # print(df[df['design_name'].str.contains('"')])
-
-# output = output_list.replace("<NA>", "null").replace("'s", "s").replace('"', "'")
-# pp(output.split(';'))
-
-

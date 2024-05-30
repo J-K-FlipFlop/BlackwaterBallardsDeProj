@@ -10,7 +10,6 @@ from src.load_lambda.utils import (
     get_insert_query,
 )
 from test_warehouse_db import seed_warehouse_db, root_warehouse_db
-from pg8000.exceptions import DatabaseError
 
 
 @pytest.fixture(scope="function")
@@ -27,12 +26,16 @@ def s3_client(aws_creds):
 
 
 class TestGetLatestProcessedFileList:
-    def test_function_returns_failure_message_if_bucket_does_not_exist(self, s3_client):
+    def test_function_returns_failure_message_if_bucket_does_not_exist(
+        self, s3_client
+    ):
         timestamp = "2024-05-20 12:10:03.998128"
         result = get_latest_processed_file_list(s3_client, timestamp)
         assert result["status"] == "failure"
 
-    def test_function_returns_success_message_when_bucket_exists(self, s3_client):
+    def test_function_returns_success_message_when_bucket_exists(
+        self, s3_client
+    ):
         timestamp = "2024-05-20 12:10:03.998128"
         bucket = "blackwater-processed-zone"
         filename = "test/data/dummy_csv.csv"
@@ -56,9 +59,13 @@ class TestGetLatestProcessedFileList:
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         result = get_latest_processed_file_list(s3_client, timestamp)
-        assert result["file_list"] == ["2024-05-20 12:10:03.998128/staff.parquet"]
+        assert result["file_list"] == [
+            "2024-05-20 12:10:03.998128/staff.parquet"
+        ]
 
-    def test_function_returns_only_files_that_are_in_latest_folder(self, s3_client):
+    def test_function_returns_only_files_that_are_in_latest_folder(
+        self, s3_client
+    ):
         bucket = "blackwater-processed-zone"
         timestamp = "2024-05-20 12:10:03.998128"
         filename = "test/data/dummy_csv.csv"
@@ -72,9 +79,13 @@ class TestGetLatestProcessedFileList:
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key2)
         result = get_latest_processed_file_list(s3_client, timestamp)
-        assert result["file_list"] == ["2024-05-20 12:10:03.998128/staff.parquet"]
+        assert result["file_list"] == [
+            "2024-05-20 12:10:03.998128/staff.parquet"
+        ]
 
-    def test_function_returns_multiple_files_that_are_in_latest_folder(self, s3_client):
+    def test_function_returns_multiple_files_that_are_in_latest_folder(
+        self, s3_client
+    ):
         bucket = "blackwater-processed-zone"
         timestamp = "2024-05-20 12:10:03.998128"
         filename = "test/data/dummy_csv.csv"
@@ -96,7 +107,9 @@ class TestGetLatestProcessedFileList:
 class TestGetProcessedData:
 
     def test_output_is_failure_if_no_bucket(self, s3_client):
-        result = get_data_from_processed_zone(client=s3_client, pq_key="test.parquet")
+        result = get_data_from_processed_zone(
+            client=s3_client, pq_key="test.parquet"
+        )
         assert result["status"] == "failure"
 
     def test_output_is_dict_containing_pandas_dataframe(self, s3_client):
@@ -109,7 +122,9 @@ class TestGetProcessedData:
         bucket = "blackwater-processed-zone"
         key = "test.parquet"
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
-        result = get_data_from_processed_zone(client=s3_client, pq_key="test.parquet")
+        result = get_data_from_processed_zone(
+            client=s3_client, pq_key="test.parquet"
+        )
         assert isinstance(result, dict)
         assert isinstance(result["data"], pd.DataFrame)
 
@@ -123,7 +138,9 @@ class TestGetProcessedData:
         bucket = "blackwater-processed-zone"
         key = "test.parquet"
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
-        result = get_data_from_processed_zone(client=s3_client, pq_key="test.parquet")
+        result = get_data_from_processed_zone(
+            client=s3_client, pq_key="test.parquet"
+        )
         assert len(result["data"]) == 2
 
 
@@ -166,7 +183,9 @@ class TestInsertDataIntoWarehouse:
 
 
 class TestGetQuery:
-    def test_query_returns_correct_sql_insert_statement_currency(self, s3_client):
+    def test_query_returns_correct_sql_insert_statement_currency(
+        self, s3_client
+    ):
         table_name = "dim_currency"
         s3_client.create_bucket(
             Bucket="blackwater-processed-zone",
@@ -176,14 +195,18 @@ class TestGetQuery:
         bucket = "blackwater-processed-zone"
         key = "currency.parquet"
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
-        data = get_data_from_processed_zone(client=s3_client, pq_key=key)["data"]
+        data = get_data_from_processed_zone(client=s3_client, pq_key=key)[
+            "data"
+        ]
         result = get_insert_query(table_name, data)
         assert (
             result
             == "INSERT INTO dim_currency VALUES (1, 'GBP', 'Pounds'), (2, 'USD', 'US dollars'), (3, 'EUR', 'Euros') RETURNING *;"
         )
 
-    def test_query_returns_correct_sql_insert_statement_location(self, s3_client):
+    def test_query_returns_correct_sql_insert_statement_location(
+        self, s3_client
+    ):
         table_name = "dim_location"
         s3_client.create_bucket(
             Bucket="blackwater-processed-zone",
@@ -193,7 +216,9 @@ class TestGetQuery:
         bucket = "blackwater-processed-zone"
         key = "location.parquet"
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
-        data = get_data_from_processed_zone(client=s3_client, pq_key=key)["data"]
+        data = get_data_from_processed_zone(client=s3_client, pq_key=key)[
+            "data"
+        ]
         result = get_insert_query(table_name, data)
         assert (
             result

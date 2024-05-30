@@ -10,7 +10,10 @@ host = creds["host"]
 port = creds["port"]
 
 
-def connect_to_db():
+def connect_to_db() -> Connection:
+    """Returns a pg8000 database connection using credentials for the Totesys
+    database obtained from AWS SecretsManager via the get_secret function"""
+
     return Connection(
         user=user, password=password, database=database, port=port, host=host
     )

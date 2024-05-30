@@ -13,9 +13,18 @@ logger.setLevel(logging.INFO)
 session = boto3.session.Session(region_name="eu-west-2")
 
 
-def lambda_handler(event, context, session=None):
+def lambda_handler(event, context, session: boto3.session = None) -> dict:
     """Lambda handler function to extract data from Totesys and write
-    to S3 ingestion zone"""
+    to S3 ingestion zone
+
+    Args:
+        Lambda function expects event and context, but are unused
+        session: a Boto3 session (optional argument)
+
+    Returns:
+        Dictionary containing a sucess message and details of what has been
+        written to ingestion bucket.
+    """
 
     runtime_key = "last_ran_at.csv"
     bucket = "blackwater-ingestion-zone"
@@ -40,7 +49,6 @@ def lambda_handler(event, context, session=None):
         previous_lambda_runtime_uncut = (
             get_previous_runtime.get()["Body"].read().decode("utf-8")
         )
-        # if structure of blackwater-ingestion-zone/last_ran_at changes slice on line below will likely have to be updated too
         previous_lambda_runtime = datetime.strptime(
             previous_lambda_runtime_uncut[12:-2], "%Y-%m-%d %H:%M:%S.%f"
         )
@@ -50,8 +58,7 @@ def lambda_handler(event, context, session=None):
         previous_lambda_runtime = datetime(1999, 12, 31, 23, 59, 59, 99999)
 
     for table in table_list:
-        # data = convert_table_to_dict(table)
-        key = f"playground/{table}.csv"
+        key = f"{table}.csv"
         response = update_data_in_bucket(
             table, bucket, session, time_of_day, previous_lambda_runtime
         )
@@ -72,7 +79,3 @@ def lambda_handler(event, context, session=None):
     message = {"success": "true", "message": response["message"]}
     logger.info(message)
     return message
-
-
-# write_csv_to_s3()
-# lambda_handler("yo", "jo")

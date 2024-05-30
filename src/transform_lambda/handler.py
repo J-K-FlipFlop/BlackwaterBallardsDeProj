@@ -19,7 +19,15 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def lambda_handler(event, context):
+def lambda_handler(event, context) -> None:
+    """Lambda handler function to read data from the S3 ingestion zone,
+    transform the data and load into the S3 processed zone
+
+    Args:
+        Lambda function expects event and context, but are unused within the
+        function
+    """
+
     session = boto3.session.Session(region_name="eu-west-2")
     client = session.client("s3")
 
@@ -29,7 +37,6 @@ def lambda_handler(event, context):
     loc = convert_location(client, session)
     stf = convert_staff(client, session)
     sales = convert_sales_order(client, session)
-    purchases = convert_purchase_order(client, session)
     date = create_dim_dates(client)
 
     counter = 0
@@ -40,7 +47,6 @@ def lambda_handler(event, context):
             curr["data"], "dim_currency", session, timestamp=timestamp
         )
         counter += 1
-        print(resp)
         logging.info(resp)
     else:
         print("currency not written")
@@ -51,7 +57,6 @@ def lambda_handler(event, context):
             cp["data"], "dim_counterparty", session, timestamp=timestamp
         )
         counter += 1
-        print(resp)
         logging.info(resp)
     else:
         print("counterparty not written")
@@ -62,7 +67,6 @@ def lambda_handler(event, context):
             des["data"], "dim_design", session, timestamp=timestamp
         )
         counter += 1
-        print(resp)
         logging.info(resp)
     else:
         print("design not written")
@@ -73,7 +77,6 @@ def lambda_handler(event, context):
             loc["data"], "dim_location", session, timestamp=timestamp
         )
         counter += 1
-        print(resp)
         logging.info(resp)
     else:
         print("location not written")
@@ -84,7 +87,6 @@ def lambda_handler(event, context):
             stf["data"], "dim_staff", session, timestamp=timestamp
         )
         counter += 1
-        print(resp)
         logging.info(resp)
     else:
         print("staff not written")
@@ -95,7 +97,6 @@ def lambda_handler(event, context):
             sales["data"], "fact_sales_order", session, timestamp=timestamp
         )
         counter += 1
-        print(resp)
         logging.info(resp)
     else:
         print("sales not written")
@@ -106,7 +107,6 @@ def lambda_handler(event, context):
             date["data"], "dim_date", session, timestamp=timestamp
         )
         counter += 1
-        print(resp)
         logging.info(resp)
     else:
         print("date not written")
@@ -122,5 +122,4 @@ def lambda_handler(event, context):
         bucket.copy(copy_source, "last_ran_at.csv")
 
     message = f"Updated {counter} tables"
-    print(message)
     logging.info(message)
