@@ -54,10 +54,6 @@ def root_warehouse_db() -> Connection:
     )
     return conn
 
-
-# table_name:str, data,
-
-
 def seed_warehouse_db(connection: Connection):
     connection.run(
         """CREATE TABLE

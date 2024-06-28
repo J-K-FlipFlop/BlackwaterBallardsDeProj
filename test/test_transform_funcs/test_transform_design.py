@@ -35,7 +35,6 @@ class TestConvertDesign:
         filename2 = f"test/data/last_ran_at.csv"
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = convert_design(s3_client, session)
-        # assert result["message"] == "no"
         assert result["status"] == "success"
         assert isinstance(result["data"], pd.DataFrame)
         column_names = ['design_id', 'design_name', 'file_location', 'file_name']
@@ -102,7 +101,6 @@ class TestConvertDesign:
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         result = convert_design(s3_client, session)
-        #error message on utils line 43-47 need improvement?
         assert result['status'] == "failure"
         assert result['timestamp'] == ""
        

@@ -122,7 +122,6 @@ class TestConvertCounterParty:
         s3_client.upload_file(Filename=filename1, Bucket=bucket, Key=key1)
         s3_client.upload_file(Filename=filename2, Bucket=bucket, Key=key2)
         result = convert_counterparty(s3_client, session)
-        #error message on utils line 43-47 need improvement?
         assert result['status'] == "failure"
         assert result['timestamp'] == ""
 

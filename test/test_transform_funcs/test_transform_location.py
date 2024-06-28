@@ -108,7 +108,6 @@ class TestConvertLocation:
         )
         s3_client.upload_file(Filename=filename, Bucket=bucket, Key=key)
         result = convert_location(s3_client, session)
-        #error message on utils line 43-47 need improvement?
         assert result['status'] == "failure"
         assert result['timestamp'] == ""
         

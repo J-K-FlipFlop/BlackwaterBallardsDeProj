@@ -104,8 +104,6 @@ def get_insert_query(table_name: str, dataframe: pd.DataFrame):
     query = f"""{query[:-2]} RETURNING *;"""
     logger.info(query)
     query = query.replace("<NA>", "null")
-    # if table_name == 'dim_location':
-    # query = query.replace("le's", "les").replace('"', "'")
     logger.info(query)
     return query
 

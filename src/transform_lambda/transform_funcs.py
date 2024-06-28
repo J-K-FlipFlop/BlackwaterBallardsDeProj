@@ -241,7 +241,6 @@ def convert_sales_order(client, session):
     response_sales = get_data_from_ingestion_bucket(
         key, filename_sales, session
     )
-    # print(response1, "<---- RESPONSE1")
     if response_sales["status"] == "success":
         df_sales = response_sales["data"]
         sales_dict = df_sales.to_dict()
@@ -389,9 +388,6 @@ def create_dim_dates(client, start = "2020-01-01", end = "2030-01-01"):
         output = {"status": "success", "data": df}
     except:
         output = {"failed": "success", "message": "something has gone horrifically wrong, check this"}
-    # print(df.dtypes)
-    # print(df["date_id"])
-    # print(df)
     return output
 
 session = boto3.session.Session()

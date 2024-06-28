@@ -146,7 +146,6 @@ resource "aws_lambda_function" "load_lambda" {
   memory_size      = 1024
 }
 
-#create zip file for load lambda function
 data "archive_file" "load_lambda_dir_zip" {
   type        = "zip"
   source_file = "${path.module}/../src/load_lambda/handler.py"
@@ -185,34 +184,3 @@ resource "aws_lambda_layer_version" "utility_layer_load" {
   filename            = "${path.module}/../aws_utils/utils_load.zip"
   source_code_hash    = data.archive_file.archive_load.output_base64sha256
 }
-
-
-#determine source file to extract and its desired output path
-# data "archive_file" "extract_lambda_zip" {
-#   type        = "zip"
-#   source_file = "${path.module}/../src/lambda_extract_function.py"
-#   output_path = "${path.module}/../function.zip"
-# }
-
-#create zip file for the extract lambda dependencies
-# data "archive_file" "extract_dependencies_zip" {
-#   type        = "zip"
-#   source_dir  = "${path.module}/../layers/extract-dependencies/"
-#   output_path = "${path.module}/../awswrangler.zip"
-# }
-
-#create zip file for the util functions
-# data "archive_file" "extract_util_functions_zip" {
-#   type        = "zip"
-#   source_content = "${path.module}/../src/extract_lambda/utils.py"
-#   source_content_filename = "python/src/extract_lambda/utils.py"
-#   output_path = "${path.module}/../aws_utils/utils_layer.zip"
-# }
-
-#create a lambda awswrangler layer to be used by main lambda functions
-# resource "aws_lambda_layer_version" "awswrangler_layer" {
-#   layer_name          = "awswrangler_layer"
-#   compatible_runtimes = ["python3.11"]
-#   filename            = "${path.module}/../awswrangler.zip"
-#   source_code_hash    = data.archive_file.extract_dependencies_zip.output_base64sha256
-# }
